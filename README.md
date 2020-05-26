@@ -4,20 +4,15 @@ A user package of LAMMPS software enabling simulations using linearized machine 
 Building lammps with lammps-mlip package
 ----------------------------------------------
 
-**lammps-mlip** package and **boost** library are required to use machine learning potentials in lammps code.
-Contact Atsuto Seko (seko at cms.mtl.kyoto-u.ac.jp) to get **lammps-mlip** package.
-
-.. Download **lammps-mlip.tar.gz** from the following link.
-
-#. Unzip **lammps-mlip.tar.gz**, and then copy all the components in the **lammps-mlip** package to the latest lammps source code directory as ::
-
+1. Copy all the components in the **lammps-mlip** package to the latest lammps source code directory as
+```
     > cp -r lammps-mlip/lib/mlip $(lammps_src)/lib
     > cp -r lammps-mlip/src/USER-MLIP $(lammps_src)/src
+```
+2. Modify $(lammps_src)/lib/mlip/Makefile.lammps to specify an installed directory of the boost library.
 
-#. Modify $(lammps_src)/lib/mlip/Makefile.lammps to specify an installed directory of the boost library.
-
-#. Add "user-mlip" to variable PACKUSER defined in $(lammps_src)/src/Makefile and activate user-mlip package as ::
-
+3. Add "user-mlip" to variable PACKUSER defined in $(lammps_src)/src/Makefile and activate user-mlip package as
+``````
     > vi $(lammps_src)/src/Makefile
         PACKUSER = user-atc user-awpmd user-cgdna user-cgsdk user-colvars \
             user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
@@ -27,7 +22,8 @@ Contact Atsuto Seko (seko at cms.mtl.kyoto-u.ac.jp) to get **lammps-mlip** packa
             user-vtk user-mlip
 
     > make yes-user-mlip
-
-#. Build lammps binary files ::
-
+```
+4. Build lammps binary files ::
+```
     > make serial -j 36
+```
