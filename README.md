@@ -31,3 +31,18 @@ Building lammps with lammps-mlip package
 Machine learning potentials for a wide range of systems can be found in the website. If you use **lammps-mlip** package and machine learning potentials in the repository for academic purposes, please cite the following article [1].
 
 [1] A. Seko, A. Togo and I. Tanaka, "Group-theoretical high-order rotational invariants for structural representations: Application to linearized machine learning interatomic potential", Phys. Rev. B 99, 214108 (2019).
+
+Lammps input commands to specify a machine learning potential
+------------------------------------------------------------------
+
+The following lammps input commands specify a machine learning potential.
+```
+    pair_style  mlip_pair
+    pair_coeff * * pyml.lammps.mlip Ti Al    
+```
+or
+```
+    pair_style  mlip_gtinv
+    pair_coeff * * pyml.lammps.mlip Ti Al    
+```
+
