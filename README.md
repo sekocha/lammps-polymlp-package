@@ -12,7 +12,7 @@ Building lammps with lammps-mlip package
 2. Modify $(lammps_src)/lib/mlip/Makefile.lammps to specify an installed directory of the boost library.
 
 3. Add "user-mlip" to variable PACKUSER defined in $(lammps_src)/src/Makefile and activate user-mlip package as
-``````
+```
     > vi $(lammps_src)/src/Makefile
         PACKUSER = user-atc user-awpmd user-cgdna user-cgsdk user-colvars \
             user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
