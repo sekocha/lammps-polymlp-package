@@ -37,7 +37,7 @@ Polynomial::Polynomial
             if (fp.maxp > 2) comb3.emplace_back(vector1i{n,n,n});
         }
     }
-    else if (fp.model_type == 2 or fp.model_type == 3){
+    else if (fp.model_type > 1){
         comb2 = modelp.get_comb2();
         comb3 = modelp.get_comb3();
     }

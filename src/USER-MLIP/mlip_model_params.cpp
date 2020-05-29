@@ -53,14 +53,30 @@ ModelParams::ModelParams(const struct feature_params& fp){
         }
         std::sort(polynomial_index.begin(),polynomial_index.end());
     }
+    else if (fp.model_type == 4 and fp.des_type == "gtinv"){
+        for (int i = 0; i < linear_array_g.size(); ++i){
+            const auto& lin = linear_array_g[i];
+            if (lin.tcomb_index.size() < 3 ){
+                for (int n = 0; n < n_fn; ++n){
+                    polynomial_index.emplace_back(n*linear_array_g.size()+i);
+                }
+            }
+        }
+        std::sort(polynomial_index.begin(),polynomial_index.end());
+    }
 
-    //if (fp.model_type == 1) n_coeff_all = n_des * fp.maxp + n_type;
+
     if (fp.model_type == 1) n_coeff_all = n_des * fp.maxp;
-    else if (fp.model_type == 2 or fp.model_type == 3){
-        if (fp.maxp > 1) combination2(polynomial_index, fp.des_type);
-        if (fp.maxp > 2) combination3(polynomial_index, fp.des_type);
+    else if (fp.model_type > 1){
+        if (fp.des_type == "pair"){
+            if (fp.maxp > 1) combination2(polynomial_index);
+            if (fp.maxp > 2) combination3(polynomial_index);
+        }
+        else if (fp.des_type == "gtinv"){
+            if (fp.maxp > 1) combination2_gtinv(polynomial_index);
+            if (fp.maxp > 2) combination3_gtinv(polynomial_index);
+        }
         n_coeff_all = n_des + comb2.size() + comb3.size();
-        //n_coeff_all = n_des + comb2.size() + comb3.size() + n_type;
     }
 }
 
@@ -109,13 +125,67 @@ void ModelParams::uniq_gtinv_type(const feature_params& fp){
     }
 }
 
-void ModelParams::combination2
-(const vector1i& iarray, const std::string& des_type){
+void ModelParams::combination2_gtinv(const vector1i& iarray){
 
     for (int i1 = 0; i1 < iarray.size(); ++i1){
-        int t1 = seq2typecomb(iarray[i1], des_type);
+        int t1 = seq2igtinv(iarray[i1]);
+        const auto &type1_1 = linear_array_g[t1].type1;
         for (int i2 = 0; i2 <= i1; ++i2){
-            int t2 = seq2typecomb(iarray[i2], des_type);
+            int t2 = seq2igtinv(iarray[i2]);
+            const auto &type1_2 = linear_array_g[t2].type1;
+            if (check_type(vector2i{type1_1,type1_2}) == true)
+                comb2.push_back(vector1i({iarray[i2],iarray[i1]}));
+        }
+    }
+}
+void ModelParams::combination3_gtinv(const vector1i& iarray){
+
+    for (int i1 = 0; i1 < iarray.size(); ++i1){
+        int t1 = seq2igtinv(iarray[i1]);
+        const auto &type1_1 = linear_array_g[t1].type1;
+        for (int i2 = 0; i2 <= i1; ++i2){
+            int t2 = seq2igtinv(iarray[i2]);
+            const auto &type1_2 = linear_array_g[t2].type1;
+            for (int i3 = 0; i3 <= i2; ++i3){
+                int t3 = seq2igtinv(iarray[i3]);
+                const auto &type1_3 = linear_array_g[t3].type1;
+                if (check_type(vector2i{type1_1,type1_2,type1_3}) == true)
+                    comb3.push_back
+                        (vector1i({iarray[i3],iarray[i2],iarray[i1]}));
+            }
+        }
+    }
+}
+
+
+bool ModelParams::check_type(const vector2i &type1_array){
+
+    for (int type1 = 0; type1 < n_type; ++type1){
+        bool tag = true;
+        for (const auto &t1: type1_array){
+            if (std::find(t1.begin(),t1.end(),type1) == t1.end()){
+                tag = false;
+                break;
+            }
+        }
+        if (tag == true) return true;
+    }
+    return false;
+}
+
+int ModelParams::seq2typecomb(const int& seq){ 
+    return seq/n_fn;
+}
+int ModelParams::seq2igtinv(const int& seq){
+    return seq % linear_array_g.size();
+}
+
+void ModelParams::combination2(const vector1i& iarray){
+
+    for (int i1 = 0; i1 < iarray.size(); ++i1){
+        int t1 = seq2typecomb(iarray[i1]);
+        for (int i2 = 0; i2 <= i1; ++i2){
+            int t2 = seq2typecomb(iarray[i2]);
             for (int type1 = 0; type1 < n_type; ++type1){
                 if (check_type_comb_pair(vector1i({t1,t2}), type1) == true){
                     comb2.push_back(vector1i({iarray[i2],iarray[i1]}));
@@ -126,15 +196,14 @@ void ModelParams::combination2
     }
 }
 
-void ModelParams::combination3
-(const vector1i& iarray, const std::string& des_type){
+void ModelParams::combination3(const vector1i& iarray){
 
     for (int i1 = 0; i1 < iarray.size(); ++i1){
-        int t1 = seq2typecomb(iarray[i1], des_type);
+        int t1 = seq2typecomb(iarray[i1]);
         for (int i2 = 0; i2 <= i1; ++i2){
-            int t2 = seq2typecomb(iarray[i2], des_type);
+            int t2 = seq2typecomb(iarray[i2]);
             for (int i3 = 0; i3 <= i2; ++i3){
-                int t3 = seq2typecomb(iarray[i3], des_type);
+                int t3 = seq2typecomb(iarray[i3]);
                 for (int type1 = 0; type1 < n_type; ++type1){
                     if (check_type_comb_pair
                         (vector1i({t1,t2,t3}), type1) == true){
@@ -148,11 +217,6 @@ void ModelParams::combination3
     }
 }
 
-//not available for (des_type = gtinv) + (model = 2)
-int ModelParams::seq2typecomb(const int& i, const std::string& des_type){
-    if (des_type == "pair") return i/n_fn;
-    else if (des_type == "gtinv") return i % linear_array_g.size();
-}
 
 bool ModelParams::check_type_comb_pair
 (const vector1i& index, const int& type1) const{ 

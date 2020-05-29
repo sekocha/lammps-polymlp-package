@@ -35,17 +35,23 @@
 class ModelParams{
 
     int n_type, n_fn, n_des, n_coeff_all;
-    vector2i comb2, comb3;
+    vector2i comb, comb2, comb3;
     vector3i type_comb_pair;
 
     std::vector<struct LinearTermGtinv> linear_array_g;
 
-    void combination2(const vector1i& iarray, const std::string& des_type);
-    void combination3(const vector1i& iarray, const std::string& des_type);
-    int seq2typecomb(const int& i, const std::string& des_type);
+    void combination2(const vector1i& iarray);
+    void combination3(const vector1i& iarray);
+    void combination2_gtinv(const vector1i& iarray);
+    void combination3_gtinv(const vector1i& iarray);
+
+    int seq2typecomb(const int& i);
+    int seq2igtinv(const int& seq);
 
     bool check_type_comb_pair(const vector1i& index, const int& type1) const;
     void uniq_gtinv_type(const feature_params& fp);
+
+    bool check_type(const vector2i &type1_array);
 
     public: 
 
