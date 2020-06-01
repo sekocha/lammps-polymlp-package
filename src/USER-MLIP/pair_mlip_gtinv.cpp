@@ -89,11 +89,12 @@ void PairMLIPGtinv::compute(int eflag, int vflag)
         i = list->ilist[ii], type1 = types[tag[i]-1];
 
         const int n_gtinv = pot.modelp.get_linear_term_gtinv().size();
-        const vector2dc &uniq = compute_anlm_uniq_products(type1, anlm[ii]);
+        const vector2dc &uniq 
+            = compute_anlm_uniq_products(type1, anlm[tag[i]-1]);
         vector1d uniq_p;
         if (pot.fp.maxp > 1){
             uniq_p = compute_polynomial_model_uniq_products
-                (type1, anlm[ii], uniq);
+                (type1, anlm[tag[i]-1], uniq);
         }
 
         for (int type2 = 0; type2 < pot.fp.n_type; ++type2){
@@ -134,8 +135,8 @@ void PairMLIPGtinv::compute(int eflag, int vflag)
                         }
                     }
                     // end: polynomial model correction
-                    prod_anlm_f[tc0][i][n][lm0] = sumf;
-                    prod_anlm_e[tc0][i][n][lm0] = sume;
+                    prod_anlm_f[tc0][tag[i]-1][n][lm0] = sumf;
+                    prod_anlm_e[tc0][tag[i]-1][n][lm0] = sume;
                 }
             }
         }
@@ -230,8 +231,8 @@ void PairMLIPGtinv::compute(int eflag, int vflag)
                 }
 
                 const int tc0 = type_comb[type1][type2];
-                const auto &prodif = prod_anlm_f[tc0][i];
-                const auto &prodie = prod_anlm_e[tc0][i];
+                const auto &prodif = prod_anlm_f[tc0][tag[i]-1];
+                const auto &prodie = prod_anlm_e[tc0][tag[i]-1];
                 const auto &prodjf = prod_anlm_f[tc0][tag[j]-1];
                 const auto &prodje = prod_anlm_e[tc0][tag[j]-1];
 
@@ -337,7 +338,7 @@ barray4dc PairMLIPGtinv::compute_anlm(){
                         #ifdef _OPENMP
                         #pragma omp atomic
                         #endif
-                        anlm_r[i][type2][n][lm] += val.real();
+                        anlm_r[tag[i]-1][type2][n][lm] += val.real();
                         #ifdef _OPENMP
                         #pragma omp atomic
                         #endif
@@ -345,7 +346,7 @@ barray4dc PairMLIPGtinv::compute_anlm(){
                         #ifdef _OPENMP
                         #pragma omp atomic
                         #endif
-                        anlm_i[i][type2][n][lm] += val.imag();
+                        anlm_i[tag[i]-1][type2][n][lm] += val.imag();
                         #ifdef _OPENMP
                         #pragma omp atomic
                         #endif

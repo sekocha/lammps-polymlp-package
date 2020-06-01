@@ -105,7 +105,7 @@ void PairMLIPPair::compute(int eflag, int vflag)
                         #ifdef _OPENMP
                         #pragma omp atomic
                         #endif
-                        dn[i][sindex+n] += fn[n];
+                        dn[tag[i]-1][sindex+n] += fn[n];
                         #ifdef _OPENMP
                         #pragma omp atomic
                         #endif
@@ -126,7 +126,8 @@ void PairMLIPPair::compute(int eflag, int vflag)
 
             i = ilist[ii], type1 = types[tag[i]-1];
             const int n_fn = pot.modelp.get_n_fn();
-            const vector1d &prodi = polynomial_model_uniq_products(dn[i]);
+            const vector1d &prodi 
+                = polynomial_model_uniq_products(dn[tag[i]-1]);
             for (int type2 = 0; type2 < pot.fp.n_type; ++type2){
                 const int tc = type_comb[type1][type2];
                 vector1d vals_f(n_fn, 0.0), vals_e(n_fn, 0.0);
@@ -139,8 +140,8 @@ void PairMLIPPair::compute(int eflag, int vflag)
                         vals_e[n] += v / pi.order;
                     }
                 }
-                prod_all_f[tc][i] = vals_f;
-                prod_all_e[tc][i] = vals_e;
+                prod_all_f[tc][tag[i]-1] = vals_f;
+                prod_all_e[tc][tag[i]-1] = vals_e;
             }
         }
     }
@@ -184,9 +185,9 @@ void PairMLIPPair::compute(int eflag, int vflag)
 
                 // polynomial model correction
                 if (pot.fp.maxp > 1){
-                    fpair += dot(fn_d, prod_all_f[tc][i], 0)
+                    fpair += dot(fn_d, prod_all_f[tc][tag[i]-1], 0)
                         +  dot(fn_d, prod_all_f[tc][tag[j]-1], 0);
-                    evdwl += dot(fn, prod_all_e[tc][i], 0)
+                    evdwl += dot(fn, prod_all_e[tc][tag[i]-1], 0)
                         + dot(fn, prod_all_e[tc][tag[j]-1], 0);
                 }
                 // polynomial model correction: end
