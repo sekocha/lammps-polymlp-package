@@ -41,7 +41,9 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairMLIPPair::PairMLIPPair(LAMMPS *lmp) : Pair(lmp)
-{}
+{
+    restartinfo = 0;
+}
 
 /* ----------------------------------------------------------------------
    check if allocated, since class can be destructed when incomplete
