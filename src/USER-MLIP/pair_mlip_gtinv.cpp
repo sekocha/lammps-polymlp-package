@@ -112,7 +112,7 @@ void PairMLIPGtinv::compute(int eflag, int vflag)
                             valreal = valtmp.real() / inv.order;
                             valimag = valtmp.imag() / inv.order;
                             sumf += valtmp;
-                            sume += dc({valreal,valimag});
+                            sume += dc(valreal,valimag);
                         }
                         else {
                             sumf += regc;
