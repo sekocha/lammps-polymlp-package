@@ -3,9 +3,9 @@ A user package of LAMMPS software enabling simulations using polynomial machine 
 
 Building lammps with lammps-polymlp package
 ----------------------------------------------
-(**lammps-mlip-package** is tested using LAMMPS_VERSION "3 Mar 2020”)
+(**lammps-polymlp-package** is tested using LAMMPS_VERSION "3 Mar 2020”)
 
-1. Copy all the components in the **lammps-mlip-package** to the latest lammps source code directory as
+1. Copy all the components in the **lammps-polymlp-package** to the latest lammps source code directory as
 ```
     > cp -r lammps-polymlp-package/lib/polymlp $(lammps_src)/lib
     > cp -r lammps-polymlp-package/src/USER-POLYMLP $(lammps_src)/src
