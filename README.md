@@ -1,27 +1,27 @@
-# lammps-mlip-package
-A user package of LAMMPS software enabling simulations using linearized machine learning potentials
+# lammps-polymlp-package
+A user package of LAMMPS software enabling simulations using polynomial machine learning potentials
 
-Building lammps with lammps-mlip package
+Building lammps with lammps-polymlp package
 ----------------------------------------------
 
-1. Copy all the components in the **lammps-mlip** package to the latest lammps source code directory as
+1. Copy all the components in the **lammps-mlip-package** to the latest lammps source code directory as
 ```
-    > cp -r lammps-mlip/lib/mlip $(lammps_src)/lib
-    > cp -r lammps-mlip/src/USER-MLIP $(lammps_src)/src
+    > cp -r lammps-polymlp-package/lib/polymlp $(lammps_src)/lib
+    > cp -r lammps-polymlp-package/src/USER-POLYMLP $(lammps_src)/src
 ```
-2. Modify $(lammps_src)/lib/mlip/Makefile.lammps to specify an installed directory of the boost library.
+2. Modify $(lammps_src)/lib/polymlp/Makefile.lammps to specify an installed directory of the boost library.
 
-3. Add "user-mlip" to variable PACKUSER defined in $(lammps_src)/src/Makefile and activate user-mlip package as
+3. Add "user-polymlp" to variable PACKUSER defined in $(lammps_src)/src/Makefile and activate user-polymlp package as
 ```
-    > vi $(lammps_src)/src/Makefile
+    > vi $(lammps_src)/src/MakefileCancel changes
         PACKUSER = user-atc user-awpmd user-cgdna user-cgsdk user-colvars \
             user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
             user-intel user-lb user-manifold user-meamc user-mgpt user-misc user-molfile \
             user-netcdf user-omp user-phonon user-qmmm user-qtb \
             user-quip user-reaxc user-smd user-smtbq user-sph user-tally \
-            user-vtk user-mlip
+            user-vtk user-polymlp
 
-    > make yes-user-mlip
+    > make yes-user-polymlp
 ```
 4. Build lammps binary files
 ```
@@ -37,12 +37,7 @@ Lammps input commands to specify a machine learning potential
 
 The following lammps input commands specify a machine learning potential.
 ```
-    pair_style  mlip_pair
-    pair_coeff * * pyml.lammps.mlip Ti Al    
-```
-or
-```
-    pair_style  mlip_gtinv
-    pair_coeff * * pyml.lammps.mlip Ti Al    
+    pair_style  polymlp
+    pair_coeff * * mlp.lammp Ti Al    
 ```
 
