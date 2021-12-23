@@ -301,8 +301,8 @@ void PairPolyMLP::compute_gtinv(int eflag, int vflag)
     vector2dc anlmtc, prod_sum_e, prod_sum_f;
     clock_t t1 = clock();
     //std::cout << " anlmtc " << std::endl;
-    compute_anlmtc(anlmtc);
-//    compute_anlmtc_openmp(anlmtc);
+//    compute_anlmtc(anlmtc);
+    compute_anlmtc_openmp(anlmtc);
     clock_t t2 = clock();
     //std::cout << " prod anlmtc " << std::endl;
     compute_sum_of_prod_anlmtc(anlmtc, prod_sum_e, prod_sum_f);
