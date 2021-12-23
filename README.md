@@ -14,7 +14,7 @@ Building lammps with lammps-polymlp package
 
 3. Add "user-polymlp" to variable PACKUSER defined in $(lammps_src)/src/Makefile and activate user-polymlp package as
 ```
-    > vi $(lammps_src)/src/MakefileCancel changes
+    > vi $(lammps_src)/src/Makefile
         PACKUSER = user-atc user-awpmd user-cgdna user-cgsdk user-colvars \
             user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
             user-intel user-lb user-manifold user-meamc user-mgpt user-misc user-molfile \
