@@ -3,6 +3,7 @@ A user package of LAMMPS software enabling simulations using polynomial machine 
 
 Building lammps with lammps-polymlp package
 ----------------------------------------------
+(**lammps-mlip-package** is tested using LAMMPS_VERSION "3 Mar 2020”)
 
 1. Copy all the components in the **lammps-mlip-package** to the latest lammps source code directory as
 ```
@@ -23,12 +24,12 @@ Building lammps with lammps-polymlp package
 
     > make yes-user-polymlp
 ```
-4. Build lammps binary files
+4. Build lammps binary files. (It requires approximately ten minutes for compiling polymlp_gtinv_data.cpp.)
 ```
     > make serial -j 36
 ```
 
-Machine learning potentials for a wide range of systems can be found in the website. If you use **lammps-mlip** package and machine learning potentials in the repository for academic purposes, please cite the following article [1].
+Machine learning potentials for a wide range of systems can be found in the website. If you use **lammps-polymlp** package and machine learning potentials in the repository for academic purposes, please cite the following article [1].
 
 [1] A. Seko, A. Togo and I. Tanaka, "Group-theoretical high-order rotational invariants for structural representations: Application to linearized machine learning interatomic potential", Phys. Rev. B 99, 214108 (2019).
 
