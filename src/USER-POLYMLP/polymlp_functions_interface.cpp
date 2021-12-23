@@ -21,9 +21,11 @@
 
 *****************************************************************************/
 
-#include "mlip_features.h"
+#include "polymlp_functions_interface.h"
 
-void get_fn(const double& dis, const struct feature_params& fp, vector1d& fn){
+void get_fn_(const double& dis, 
+             const struct feature_params& fp, 
+             vector1d& fn){
 
     double fc = cosine_cutoff_function(dis, fp.cutoff);
 
@@ -33,12 +35,17 @@ void get_fn(const double& dis, const struct feature_params& fp, vector1d& fn){
             fn[n] = gauss(dis, fp.params[n][0], fp.params[n][1]) * fc;
         }
     }
+    else if (fp.pair_type == "sph_bessel"){
+        for (int n = 0; n < fp.params.size(); ++n){
+            fn[n] = sph_bessel(dis, fp.params[n][0], fp.params[n][1]) * fc;
+        }
+    }
 }
 
-
-void get_fn
-(const double& dis, const struct feature_params& fp, 
- vector1d& fn, vector1d& fn_dr){
+void get_fn_(const double& dis, 
+             const struct feature_params& fp, 
+             vector1d& fn, 
+             vector1d& fn_dr){
 
     double fn_val, fn_dr_val;
     const double fc = cosine_cutoff_function(dis, fp.cutoff);
@@ -53,54 +60,40 @@ void get_fn
             fn_dr[n] = fn_dr_val * fc + fn_val * fc_dr;
         }
     }
-}
-
-vector2i get_lm_info(const int& max_l){
-
-    vector2i lm_comb;
-    for (int l = 0; l < max_l + 1; ++l){
-        for (int m = -l; m < 1; ++m){
-            lm_comb.emplace_back(vector1i{l,m,l*l+l+m,l*l+l-m});
+    else if (fp.pair_type == "sph_bessel"){
+        for (int n = 0; n < fp.params.size(); ++n){
+            sph_bessel_d(dis, fp.params[n][0], fp.params[n][1],
+                         fn_val, fn_dr_val);
+            fn[n] = fn_val * fc;
+            fn_dr[n] = fn_dr_val * fc + fn_val * fc_dr;
         }
     }
-    return lm_comb;
 }
 
-void get_ylm(const vector1d& sph, const vector2i& lm_info, vector1dc& ylm){
+void get_ylm_(const double polar, 
+              const double azimuthal, 
+              const int lmax, 
+              vector1dc& ylm){
 
-    ylm.resize(lm_info.size());
-    for (int lm = 0; lm < lm_info.size(); ++lm){
-        ylm[lm] = boost::math::spherical_harmonic
-            (lm_info[lm][0], lm_info[lm][1], sph[0], sph[1]);
-    }
+    SphericalHarmonics sh(lmax);
+    sh.compute_ylm(cos(polar), azimuthal, ylm);
 }
 
-void get_ylm
-(const vector1d& sph, const vector2i& lm_info,
- vector1dc& ylm, vector1dc& ylm_dtheta){
-// ylm_dphi = i*m*Ylm
+void get_ylm_(const double r, 
+              const double polar, 
+              const double azimuthal, 
+              const int lmax, 
+              vector1dc& ylm, 
+              vector1dc& ylm_dx, 
+              vector1dc& ylm_dy, 
+              vector1dc& ylm_dz){
 
-    const dc imag(0.0, 1.0);
-
-    const double tan_theta = tanl(sph[0]);
-    const double tan_theta_inv = 1.0 / tan_theta;
-    const dc exp_imag_phi = exp(-imag*sph[1]);
-
-    ylm.resize(lm_info.size());
-    ylm_dtheta.resize(lm_info.size());
-    for (int lm = 0; lm < lm_info.size(); ++lm){
-        ylm[lm] = boost::math::spherical_harmonic
-            (lm_info[lm][0], lm_info[lm][1], sph[0], sph[1]);
-    }
-    for (int lm = 0; lm < lm_info.size(); ++lm){
-        ylm_dtheta[lm] = spherical_harmonic_dtheta
-            (lm_info[lm][0], lm_info[lm][1], tan_theta_inv,
-             exp_imag_phi, ylm, lm);
-    }
-
+    SphericalHarmonics sh(lmax);
+    sh.compute_ylm(cos(polar), azimuthal, ylm);
+    sh.compute_ylm_der(cos(polar), azimuthal, r, ylm_dx, ylm_dy, ylm_dz);
 }
 
-vector1d cartesian_to_spherical(const vector1d& v){
+vector1d cartesian_to_spherical_(const vector1d& v){
 
     bg::model::point<long double,3,bg::cs::cartesian> p1(v[0], v[1], v[2]);
     bg::model::point<long double,3,bg::cs::spherical<bg::radian> > p2;
@@ -109,19 +102,3 @@ vector1d cartesian_to_spherical(const vector1d& v){
         static_cast<double>(bg::get<0>(p2))}; // theta, phi
 }
 
-dc spherical_harmonic_dtheta
-(const int& l, const int& m, const double& tan_theta_inv,
- const dc& exp_imag_phi, const vector1dc& ylm, const int& lm){
-
-    if (m < 0){
-        dc ylm_d = sqrt((l-m)*(l+m+1)) * ylm[lm+1] * exp_imag_phi;
-        if (std::isinf(tan_theta_inv) == false){
-            ylm_d += double(m) * ylm[lm] * tan_theta_inv;
-        }
-        return ylm_d;
-    }
-    else if (l > 0 and m == 0){
-        return - sqrt(l*(l+1)) * ylm[lm-1] * std::conj(exp_imag_phi);
-    }
-    else return 0.0;
-}

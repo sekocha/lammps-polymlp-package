@@ -21,12 +21,13 @@
 
 *****************************************************************************/
 
-#include "mlip_read_gtinv.h"
+#include "polymlp_read_gtinv.h"
 
 Readgtinv::Readgtinv(){}
-Readgtinv::Readgtinv
-(const int& gtinv_order, const vector1i& gtinv_maxl, 
- const std::vector<bool>& gtinv_sym, const int& n_type){
+Readgtinv::Readgtinv(const int& gtinv_order, 
+                     const vector1i& gtinv_maxl, 
+                     const std::vector<bool>& gtinv_sym, 
+                     const int& n_type){
 
     screening(gtinv_order, gtinv_maxl, gtinv_sym, n_type);
 
@@ -34,9 +35,10 @@ Readgtinv::Readgtinv
 
 Readgtinv::~Readgtinv(){}
 
-void Readgtinv::screening
-(const int& gtinv_order, const vector1i& gtinv_maxl, 
- const std::vector<bool>& gtinv_sym, const int& n_type){
+void Readgtinv::screening(const int& gtinv_order, 
+                          const vector1i& gtinv_maxl, 
+                          const std::vector<bool>& gtinv_sym, 
+                          const int& n_type){
 
     GtinvData data;
     const vector2i l_array_all = data.get_l_array();

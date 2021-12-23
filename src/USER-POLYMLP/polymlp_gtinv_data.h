@@ -19,40 +19,32 @@
         Fifth Floor, Boston, MA 02110-1301, USA, or see
         http://www.gnu.org/copyleft/gpl.txt
 
+	    Header file for GtinvData.cpp
+		
 ****************************************************************************/
 
-#ifndef __MLIP_FEATURES
-#define __MLIP_FEATURES
+#ifndef __POLYMLP_GTINV_DATA
+#define __POLYMLP_GTINV_DATA
 
-#include <boost/geometry.hpp>
-#include <boost/math/special_functions/spherical_harmonic.hpp>
+#include "polymlp_mlpcpp.h"
 
-#include "mlip_pymlcpp.h"
-#include "mlip_basis_function.h"
+class GtinvData{
 
-namespace bg = boost::geometry;
-namespace bm = boost::math;
+    vector2i l_array_all;
+    vector3i m_array_all;
+    vector2d coeffs_all;
+    
+    void set_gtinv_info();
 
-// radial functions
-void get_fn(const double& dis, const struct feature_params& fp, vector1d& fn);
+    public: 
 
-void get_fn
-(const double& dis, const struct feature_params& fp, 
- vector1d& fn, vector1d& fn_dr);
+    GtinvData();
+   ~GtinvData();
 
-// Spherical harmonics
-vector1d cartesian_to_spherical(const vector1d& v);
+    const vector2i& get_l_array() const;
+    const vector3i& get_m_array() const;
+    const vector2d& get_coeffs() const;
 
-void get_ylm(const vector1d& sph, const vector2i& lm_info, vector1dc& ylm);
-
-void get_ylm
-(const vector1d& sph, const vector2i& lm_info,
- vector1dc& ylm, vector1dc& ylm_dtheta);
-
-dc spherical_harmonic_dtheta
-(const int& l, const int& m, const double& tan_theta,
- const dc& exp_imag_phi, const vector1dc& ylm, const int& lm);
-
-vector2i get_lm_info(const int& max_l);
+};
 
 #endif

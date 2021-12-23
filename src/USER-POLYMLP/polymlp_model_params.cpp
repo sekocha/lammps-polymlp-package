@@ -21,15 +21,63 @@
 
 *****************************************************************************/
 
-#include "mlip_model_params.h"
+#include "polymlp_model_params.h"
 
 ModelParams::ModelParams(){}
 ModelParams::ModelParams(const struct feature_params& fp){
 
-    n_type = fp.n_type, n_fn = fp.params.size();
+    n_type = fp.n_type;
 
+    // must be extended to more than ternary systems
+    // Setting two elements in one array such as {0,1}, ... is unavailable.
+    // If using such a setting, codes for computing features should be revised.
     if (n_type == 1) type_comb_pair = {{{0}}};
     else if (n_type == 2) type_comb_pair = {{{0}, {}}, {{1}, {0}}, {{}, {1}}};
+
+    n_type_comb = type_comb_pair.size();
+    initial_setting(fp);
+}
+
+ModelParams::ModelParams(const struct feature_params& fp, const bool icharge){
+
+    n_type = fp.n_type;
+
+    if (icharge == false){
+        if (n_type == 1) {
+            type_comb_pair = {{{0}}};
+        }
+        else if (n_type == 2) {
+            type_comb_pair = {{{0}, {}}, 
+                              {{1}, {0}}, 
+                              {{}, {1}}};
+        }
+        else {
+            exit(8);
+        }
+    }
+    else {
+    // Setting two elements in one array such as {0,1}, ... is unavailable.
+    // If using such a setting, codes for computing features should be revised.
+        if (n_type == 2) {
+            type_comb_pair = {{{0}, {}},
+                              {{1}, {}},
+                              {{}, {0}},
+                              {{}, {1}}};
+        }
+        else {
+            exit(8);
+        }
+    }
+
+    n_type_comb = type_comb_pair.size();
+    initial_setting(fp);
+}
+
+ModelParams::~ModelParams(){}
+
+void ModelParams::initial_setting(const struct feature_params& fp){
+
+    n_type = fp.n_type, n_fn = fp.params.size();
 
     if (fp.des_type == "pair") n_des = n_fn * type_comb_pair.size();
     else if (fp.des_type == "gtinv"){
@@ -79,8 +127,6 @@ ModelParams::ModelParams(const struct feature_params& fp){
         n_coeff_all = n_des + comb2.size() + comb3.size();
     }
 }
-
-ModelParams::~ModelParams(){}
 
 void ModelParams::uniq_gtinv_type(const feature_params& fp){
 
@@ -229,16 +275,19 @@ bool ModelParams::check_type_comb_pair
 }
 
 const int& ModelParams::get_n_type() const { return n_type; }
+const int& ModelParams::get_n_type_comb() const { return n_type_comb; }
 const int& ModelParams::get_n_fn() const { return n_fn; }
 const int& ModelParams::get_n_des() const { return n_des; }
 const int& ModelParams::get_n_coeff_all() const { return n_coeff_all; }
 const vector2i& ModelParams::get_comb2() const { return comb2; }
 const vector2i& ModelParams::get_comb3() const{ return comb3; }
 
-const vector3i& ModelParams::get_type_comb_pair() const{ return type_comb_pair;}
+const vector3i& ModelParams::get_type_comb_pair() const{ 
+    return type_comb_pair;
+}
 
-vector1i ModelParams::get_type_comb_pair
-(const vector1i& tc_index, const int& type1){ 
+vector1i ModelParams::get_type_comb_pair(const vector1i& tc_index, 
+                                         const int& type1){ 
     vector1i all;
     for (const auto& i: tc_index) 
         all.emplace_back(type_comb_pair[i][type1][0]);

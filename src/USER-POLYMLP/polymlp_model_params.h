@@ -23,18 +23,18 @@
 		
 ****************************************************************************/
 
-#ifndef __MLIP_MODEL_PARAMS
-#define __MLIP_MODEL_PARAMS
+#ifndef __POLYMLP_MODEL_PARAMS
+#define __POLYMLP_MODEL_PARAMS
 
 #include <set>
 #include <iterator>
 #include <algorithm>
 
-#include "mlip_pymlcpp.h"
+#include "polymlp_mlpcpp.h"
 
 class ModelParams{
 
-    int n_type, n_fn, n_des, n_coeff_all;
+    int n_type, n_fn, n_des, n_coeff_all, n_type_comb;
     vector2i comb, comb2, comb3;
     vector3i type_comb_pair;
 
@@ -53,13 +53,17 @@ class ModelParams{
 
     bool check_type(const vector2i &type1_array);
 
+    void initial_setting(const struct feature_params& fp);
+
     public: 
 
     ModelParams();
     ModelParams(const struct feature_params& fp);
+    ModelParams(const struct feature_params& fp, const bool icharge);
     ~ModelParams();
 
     const int& get_n_type() const;
+    const int& get_n_type_comb() const;
     const int& get_n_fn() const;
     const int& get_n_des() const;
     const int& get_n_coeff_all() const;
@@ -70,8 +74,8 @@ class ModelParams{
     const std::vector<struct LinearTermGtinv>& get_linear_term_gtinv() const;
 
     const vector3i& get_type_comb_pair() const;
-    vector1i get_type_comb_pair
-        (const vector1i& tc_index, const int& type1);
+    vector1i get_type_comb_pair(const vector1i& tc_index, 
+                                const int& type1);
 
 };
 

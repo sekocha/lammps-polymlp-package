@@ -19,31 +19,39 @@
         Fifth Floor, Boston, MA 02110-1301, USA, or see
         http://www.gnu.org/copyleft/gpl.txt
 
-	    Header file for GtinvData.cpp
+	    Header file for Readgtinv.cpp
 		
 ****************************************************************************/
 
-#ifndef __MLIP_GTINV_DATA
-#define __MLIP_GTINV_DATA
+#ifndef __POLYMLP_READ_GTINV
+#define __POLYMLP_READ_GTINV
 
-#include "mlip_pymlcpp.h"
+#include "polymlp_gtinv_data.h"
+#include "polymlp_mlpcpp.h"
 
-class GtinvData{
+class Readgtinv{
 
-    vector2i l_array_all;
-    vector3i m_array_all;
-    vector2d coeffs_all;
+    vector2i l_array;
+    vector3i lm_array;
+    vector2d coeffs;
     
-    void set_gtinv_info();
+    void screening(const int& gtinv_order, 
+                   const vector1i& gtinv_maxl, 
+                   const std::vector<bool>& gtinv_sym, 
+                   const int& n_type);
 
     public: 
 
-    GtinvData();
-   ~GtinvData();
+    Readgtinv();
+    Readgtinv(const int& gtinv_order, 
+              const vector1i& gtinv_maxl, 
+              const std::vector<bool>& gtinv_sym, 
+              const int& n_type);
+   ~Readgtinv();
 
-    const vector2i& get_l_array() const;
-    const vector3i& get_m_array() const;
-    const vector2d& get_coeffs() const;
+    const vector3i& get_lm_seq() const;
+    const vector2i& get_l_comb() const;
+    const vector2d& get_lm_coeffs() const;
 
 };
 

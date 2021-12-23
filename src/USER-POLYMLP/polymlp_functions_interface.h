@@ -19,38 +19,45 @@
         Fifth Floor, Boston, MA 02110-1301, USA, or see
         http://www.gnu.org/copyleft/gpl.txt
 
-	    Header file for Readgtinv.cpp
-		
 ****************************************************************************/
 
-#ifndef __MLIP_READ_GTINV
-#define __MLIP_READ_GTINV
+#ifndef __POLYMLP_FUNCTIONS_INTERFACE
+#define __POLYMLP_FUNCTIONS_INTERFACE
 
-#include "mlip_gtinv_data.h"
-#include "mlip_pymlcpp.h"
+#include <boost/geometry.hpp>
 
-class Readgtinv{
+#include "polymlp_mlpcpp.h"
+#include "polymlp_basis_function.h"
+#include "polymlp_mlipkk_spherical_harmonics.h"
 
-    vector2i l_array;
-    vector3i lm_array;
-    vector2d coeffs;
-    
-    void screening
-        (const int& gtinv_order, const vector1i& gtinv_maxl, 
-         const std::vector<bool>& gtinv_sym, const int& n_type);
+namespace bg = boost::geometry;
+namespace bm = boost::math;
 
-    public: 
+// Radial functions
+void get_fn_(const double& dis, 
+             const struct feature_params& fp, 
+             vector1d& fn);
 
-    Readgtinv();
-    Readgtinv
-        (const int& gtinv_order, const vector1i& gtinv_maxl, 
-         const std::vector<bool>& gtinv_sym, const int& n_type);
-   ~Readgtinv();
+void get_fn_(const double& dis, 
+             const struct feature_params& fp, 
+             vector1d& fn, 
+             vector1d& fn_dr);
 
-    const vector3i& get_lm_seq() const;
-    const vector2i& get_l_comb() const;
-    const vector2d& get_lm_coeffs() const;
+// Spherical harmonics
+void get_ylm_(const double polar, 
+              const double azimuthal, 
+              const int lmax, 
+              vector1dc& ylm);
 
-};
+void get_ylm_(const double r, 
+              const double polar, 
+              const double azimuthal, 
+              const int lmax, 
+              vector1dc& ylm, 
+              vector1dc& ylm_dx, 
+              vector1dc& ylm_dy, 
+              vector1dc& ylm_dz);
+
+vector1d cartesian_to_spherical_(const vector1d& v);
 
 #endif
