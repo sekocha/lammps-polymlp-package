@@ -6,6 +6,3 @@ polymlp_PATH = -L../../lib/polymlp
 polymlp_SYSINC = 
 polymlp_SYSLIB = -lgomp
 
-#polymlp_SYSINC = #-I/home/seko/usr/include
-#polymlp_SYSLIB = -lgomp #-L/home/seko/usr/lib -lgomp
-
