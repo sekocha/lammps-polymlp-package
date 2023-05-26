@@ -11,7 +11,7 @@ Building lammps with lammps-polymlp package
     > cp -r lammps-polymlp-package/src/POLYMLP $(lammps_src)/src
 ```
 
-2. Add "polymlp" to variable PACKUSER defined in $(lammps_src)/src/Makefile and activate polymlp package as
+2. Add "polymlp" to variable PACKAGE defined in $(lammps_src)/src/Makefile and activate polymlp package as
 ```
     > cat $(lammps_src)/src/Makefile
         PACKAGE = \
