@@ -33,6 +33,14 @@ ModelParams::ModelParams(const struct feature_params& fp){
     // If using such a setting, codes for computing features should be revised.
     if (n_type == 1) type_comb_pair = {{{0}}};
     else if (n_type == 2) type_comb_pair = {{{0}, {}}, {{1}, {0}}, {{}, {1}}};
+    else if (n_type == 3) {
+        type_comb_pair = {{{0}, {}, {}},
+                          {{1}, {0}, {}},
+                          {{2}, {}, {0}},
+                          {{}, {1}, {}},
+                          {{}, {2}, {1}},
+                          {{}, {}, {2}}};
+    }
 
     n_type_comb = type_comb_pair.size();
     initial_setting(fp);
@@ -50,6 +58,14 @@ ModelParams::ModelParams(const struct feature_params& fp, const bool icharge){
             type_comb_pair = {{{0}, {}}, 
                               {{1}, {0}}, 
                               {{}, {1}}};
+        }
+        else if (n_type == 3) {
+            type_comb_pair = {{{0}, {}, {}},
+                              {{1}, {0}, {}},
+                              {{2}, {}, {0}},
+                              {{}, {1}, {}},
+                              {{}, {2}, {1}},
+                              {{}, {}, {2}}};
         }
         else {
             exit(8);
@@ -159,6 +175,7 @@ void ModelParams::uniq_gtinv_type(const feature_params& fp){
             }
             uniq_lmt.insert(tmp);
         }
+
         for (const auto& lt: uniq_lmt){
             vector1i tc, t1a;
             for (const auto& lt1: lt) tc.emplace_back(lt1.second);
@@ -179,8 +196,9 @@ void ModelParams::combination2_gtinv(const vector1i& iarray){
         for (int i2 = 0; i2 <= i1; ++i2){
             int t2 = seq2igtinv(iarray[i2]);
             const auto &type1_2 = linear_array_g[t2].type1;
-            if (check_type(vector2i{type1_1,type1_2}) == true)
+            if (check_type(vector2i{type1_1,type1_2}) == true){
                 comb2.push_back(vector1i({iarray[i2],iarray[i1]}));
+            }
         }
     }
 }
@@ -285,7 +303,6 @@ const vector2i& ModelParams::get_comb3() const{ return comb3; }
 const vector3i& ModelParams::get_type_comb_pair() const{ 
     return type_comb_pair;
 }
-
 vector1i ModelParams::get_type_comb_pair(const vector1i& tc_index, 
                                          const int& type1){ 
     vector1i all;

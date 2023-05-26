@@ -231,10 +231,7 @@ void PairPolyMLP::compute_sum_of_prod_antc(const vector2d& antc,
                                            vector2d& prod_antc_sum_e,
                                            vector2d& prod_antc_sum_f){
 
-    const vector2i& prod_map = pot.p_obj.get_prod_map();
-    const vector2i& prod_features_map = pot.p_obj.get_prod_features_map();
     const auto& ntc_map = pot.p_obj.get_ntc_map();
-    const auto& linear_features = pot.p_obj.get_linear_features();
 
     int inum = list->inum;
     prod_antc_sum_e = vector2d(inum, vector1d(ntc_map.size(), 0.0));
@@ -244,21 +241,28 @@ void PairPolyMLP::compute_sum_of_prod_antc(const vector2d& antc,
     #pragma omp parallel for schedule(guided)
     #endif
     for (int ii = 0; ii < inum; ii++) {
-        int i,*ilist;
+        int i,type1,*ilist;
         tagint *tag = atom->tag;
         i = list->ilist[ii];
+        type1 = types[tag[i]-1];
+
+        const auto& linear_features = pot.p_obj.get_linear_features(type1);
+        const auto& prod_map = pot.p_obj.get_prod_map(type1);
+        const auto& prod_features_map = pot.p_obj.get_prod_features_map(type1);
 
         // computing products of order parameters (antc)
         vector1d prod_antc;
-        compute_products(prod_map, antc[tag[i]-1], prod_antc);
+        compute_products<double>(prod_map, antc[tag[i]-1], prod_antc);
 
         // end: computing products of order parameters (antc)
 
         // computing linear features
-        vector1d feature_values(linear_features.size());
+        vector1d feature_values(linear_features.size(), 0.0);
         int idx = 0;
         for (const auto& sfeature: linear_features){
-            feature_values[idx] = prod_antc[sfeature[0].prod_key];
+            if (sfeature.size() > 0){
+                feature_values[idx] = prod_antc[sfeature[0].prod_key];
+            }
             ++idx;
         }
         // end: computing linear features
@@ -270,13 +274,16 @@ void PairPolyMLP::compute_sum_of_prod_antc(const vector2d& antc,
 
         idx = 0;
         for (const auto& ntc: ntc_map){
-            const auto& pmodel = pot.p_obj.get_potential_model(ntc.ntc_key);
+            const auto& pmodel = pot.p_obj.get_potential_model(type1, 
+                                                               ntc.ntc_key);
             double sum_e(0.0), sum_f(0.0), prod;
             for (const auto& pterm: pmodel){
+                //if (fabs(prod_features[pterm.prod_features_key]) > 1e-50){
                 prod = prod_antc[pterm.prod_key] 
                      * prod_features[pterm.prod_features_key];
                 sum_e += pterm.coeff_e * prod;
                 sum_f += pterm.coeff_f * prod;
+                //}
             }
             prod_antc_sum_e[tag[i]-1][idx] = 0.5 * sum_e;
             prod_antc_sum_f[tag[i]-1][idx] = 0.5 * sum_f;
@@ -300,15 +307,12 @@ void PairPolyMLP::compute_gtinv(int eflag, int vflag)
 
     vector2dc anlmtc, prod_sum_e, prod_sum_f;
     clock_t t1 = clock();
-    //std::cout << " anlmtc " << std::endl;
 //    compute_anlmtc(anlmtc);
     compute_anlmtc_openmp(anlmtc);
     clock_t t2 = clock();
-    //std::cout << " prod anlmtc " << std::endl;
     compute_sum_of_prod_anlmtc(anlmtc, prod_sum_e, prod_sum_f);
     clock_t t3 = clock();
 
-    //std::cout << " energy " << std::endl;
     vector2d evdwl_array(inum),fx_array(inum),fy_array(inum),fz_array(inum);
     for (int ii = 0; ii < inum; ii++) {
         int i = list->ilist[ii];
@@ -395,13 +399,14 @@ void PairPolyMLP::compute_gtinv(int eflag, int vflag)
         }
     }
     clock_t t4 = clock();
-    /*
+   /* 
     std::cout 
         << double(t2-t1)/CLOCKS_PER_SEC << " "
         << double(t3-t2)/CLOCKS_PER_SEC << " "
         << double(t4-t3)/CLOCKS_PER_SEC << " "
         << std::endl;
     */
+    
 
     int i,j,jnum,*jlist;
     double fx,fy,fz,evdwl,dis,delx,dely,delz;
@@ -563,6 +568,9 @@ void PairPolyMLP::compute_anlmtc_conjugate(const vector2d& anlmtc_r,
     #pragma omp parallel for schedule(guided)
     #endif
     for (int ii = 0; ii < anlmtc.size(); ii++) {
+        tagint *tag = atom->tag;
+        int i = list->ilist[ii];
+        int type1 = types[tag[i]-1];
         int idx(0);
         for (const auto& nlmtc: nlmtc_map_no_conj){
             const auto& cc_coeff = nlmtc.lm.cc_coeff;
@@ -579,94 +587,98 @@ void PairPolyMLP::compute_sum_of_prod_anlmtc(const vector2dc& anlmtc,
                                              vector2dc& prod_sum_e,
                                              vector2dc& prod_sum_f){
 
-    const auto& prod_map = pot.p_obj.get_prod_map();
-    const auto& prod_map_erased = pot.p_obj.get_prod_map_erased();
-    const auto& prod_features_map = pot.p_obj.get_prod_features_map();
-
     const auto& nlmtc_map_no_conj = pot.p_obj.get_nlmtc_map_no_conjugate();
     const int n_head_keys = nlmtc_map_no_conj.size();
-
     int inum = list->inum;
     prod_sum_e = vector2dc(inum, vector1dc(n_head_keys));
     prod_sum_f = vector2dc(inum, vector1dc(n_head_keys));
 
-
-    int sum_terms = 0;
-    for (int key = 0; key < nlmtc_map_no_conj.size(); ++key){
-        const auto& pmodel = pot.p_obj.get_potential_model(key);
-        sum_terms += pmodel.size();
-    }
-/*
-    std::cout << " prod_map, prod_map_erased, "
-              << " prod_features_map, n_potential_terms" << std::endl;
-    std::cout << prod_map.size() << " " 
-              << prod_map_erased.size() << " " 
-              << prod_features_map.size() <<  " " 
-              << sum_terms <<  " " 
-              << std::endl;
-*/
     #ifdef _OPENMP
     #pragma omp parallel for schedule(auto)
     #endif
     for (int ii = 0; ii < inum; ii++) {
-        int i,*ilist;
+        int i,type1,*ilist;
         tagint *tag = atom->tag;
         i = list->ilist[ii];
+        type1 = types[tag[i]-1];
+
+        const auto& prod_map = pot.p_obj.get_prod_map(type1);
+        const auto& prod_map_erased = pot.p_obj.get_prod_map_erased(type1);
+        const auto& prod_features_map = pot.p_obj.get_prod_features_map(type1);
 
         clock_t t1 = clock();
         // computing nonequivalent products of order parameters (anlmtc)
-        vector1dc prod_anlmtc, prod_anlmtc_erased;
-        compute_products<dc>(prod_map, anlmtc[tag[i]-1], prod_anlmtc);
-        compute_products<dc>(prod_map_erased, 
-                             anlmtc[tag[i]-1],
-                             prod_anlmtc_erased);
+        vector1d prod_anlmtc;
+        compute_products_real(prod_map, anlmtc[tag[i]-1], prod_anlmtc);
+        clock_t t2 = clock();
         // end: computing products of order parameters (anlmtc)
 
-        clock_t t2 = clock();
         // computing linear features
         //   and nonequivalent products of linear features
         vector1d features, prod_features;
-        compute_linear_features(prod_anlmtc, features);
+        compute_linear_features(prod_anlmtc, type1, features);
         compute_products<double>(prod_features_map, features, prod_features);
         // end: computing linear features
-
         clock_t t3 = clock();
+
+        vector1dc prod_anlmtc_erased;
+        compute_products<dc>(prod_map_erased, 
+                             anlmtc[tag[i]-1],
+                             prod_anlmtc_erased);
+        clock_t t4 = clock();
+
         for (int key = 0; key < nlmtc_map_no_conj.size(); ++key){
-            const auto& pmodel = pot.p_obj.get_potential_model(key);
-            dc sum_e(0.0), sum_f(0.0), prod;
+            const auto& pmodel = pot.p_obj.get_potential_model(type1, key);
+            dc sum_e(0.0), sum_f(0.0);
+//            dc prod;
             for (const auto& pterm: pmodel){
-                prod = prod_anlmtc_erased[pterm.prod_key] 
-                     * prod_features[pterm.prod_features_key];
-                sum_e += pterm.coeff_e * prod;
-                sum_f += pterm.coeff_f * prod;
+                // must be examined
+                if (fabs(prod_features[pterm.prod_features_key]) > 1e-50){
+                    sum_e += pterm.coeff_e 
+                           * prod_features[pterm.prod_features_key] 
+                           * prod_anlmtc_erased[pterm.prod_key];
+                    sum_f += pterm.coeff_f
+                           * prod_features[pterm.prod_features_key] 
+                           * prod_anlmtc_erased[pterm.prod_key];
+                   /*
+                   prod = prod_anlmtc_erased[pterm.prod_key] 
+                         * prod_features[pterm.prod_features_key];
+                   sum_e += pterm.coeff_e * prod;
+                   sum_f += pterm.coeff_f * prod;
+                   */
+                }
             }
             prod_sum_e[tag[i]-1][key] = sum_e;
             prod_sum_f[tag[i]-1][key] = sum_f;
         }
 
-        clock_t t4 = clock();
-      
-        //std::cout 
-        //    << double(t2-t1)/CLOCKS_PER_SEC << " "
-        //    << double(t3-t2)/CLOCKS_PER_SEC << " "
-        //    << double(t4-t3)/CLOCKS_PER_SEC << " "
-        //    << std::endl;
+        clock_t t5 = clock();
+    /* 
+        std::cout 
+            << double(t2-t1)/CLOCKS_PER_SEC << " "
+            << double(t3-t2)/CLOCKS_PER_SEC << " "
+            << double(t4-t3)/CLOCKS_PER_SEC << " "
+            << double(t5-t4)/CLOCKS_PER_SEC << " "
+            << std::endl;
+            */
     }
 }
 
-void PairPolyMLP::compute_linear_features(const vector1dc& prod_anlmtc,
+void PairPolyMLP::compute_linear_features(const vector1d& prod_anlmtc,
+                                          const int type1,
                                           vector1d& feature_values){
 
-    const auto& linear_features = pot.p_obj.get_linear_features();
-    feature_values.resize(linear_features.size());
+    const auto& linear_features = pot.p_obj.get_linear_features(type1);
+    feature_values = vector1d(linear_features.size(), 0.0);
 
     int idx = 0;
+    double val;
     for (const auto& sfeature: linear_features){
-        dc val(0.0);
+        val = 0.0;
         for (const auto& sterm: sfeature){
             val += sterm.coeff * prod_anlmtc[sterm.prod_key];
         }
-        feature_values[idx] = std::real(val);
+        feature_values[idx] = val;
         ++idx;
     }
 }
@@ -679,22 +691,58 @@ void PairPolyMLP::compute_products(const vector2i& map,
     prod_vals = std::vector<T>(map.size());
 
     int idx(0);
+    T val_p;
     for (const auto& prod: map){
-        T val;
-        if (prod.size() == 0){
-            val = 1.0;
+        if (prod.size() > 0){
+            auto iter = prod.begin();
+            val_p = element[*iter];
+            ++iter;
+            while (iter != prod.end()){
+                val_p *= element[*iter];
+                ++iter;
+            }
         }
-        else {
-            val = element[prod[0]];
-            for (int n = 1; n < prod.size(); ++n) val *= element[prod[n]];
-        }
-        prod_vals[idx] = val;
+        else val_p = 1.0;
+
+        prod_vals[idx] = val_p;
         ++idx;
     }
 }
 
+void PairPolyMLP::compute_products_real(const vector2i& map, 
+                                        const vector1dc& element,
+                                        vector1d& prod_vals){
+
+    prod_vals = vector1d(map.size());
+
+    int idx(0);
+    dc val_p; 
+    for (const auto& prod: map){
+        if (prod.size() > 1) {
+            auto iter = prod.begin() + 1;
+            val_p = element[*iter];
+            ++iter;
+            while (iter != prod.end()){
+                val_p *= element[*iter];
+                ++iter;
+            }
+            prod_vals[idx] = prod_real(val_p, element[*(prod.begin())]);
+        }
+        else if (prod.size() == 1){
+            prod_vals[idx] = element[*(prod.begin())].real();
+        }
+        else prod_vals[idx] = 1.0;
+        ++idx;
+    }
+}
+
+
 double PairPolyMLP::prod_real(const dc& val1, const dc& val2){
     return val1.real() * val2.real() - val1.imag() * val2.imag();
+}
+
+dc PairPolyMLP::prod_real_and_complex(const double val1, const dc& val2){
+    return dc(val1 * val2.real(), val1 * val2.imag());
 }
 
 /* ---------------------------------------------------------------------- */
@@ -867,6 +915,25 @@ void PairPolyMLP::read_pot(char *file)
             }
         }
     }
+
+/*
+    if (pot.fp.des_type == "gtinv"){
+        const auto& nlmtc_map_no_conj = pot.p_obj.get_nlmtc_map_no_conjugate();
+        // must be revised
+        nlmtc_map_no_conj_key_array.resize(pot.fp.n_type);
+        for (int key = 0; key < nlmtc_map_no_conj.size(); ++key){
+            const int tc = nlmtc_map_no_conj[key].tc;
+            for (int type1 = 0; type1 < pot.fp.n_type; ++type1){
+                for (const auto tc2: type_comb[type1]){
+                    if (tc2 == tc){
+                        nlmtc_map_no_conj_key_array[type1].emplace_back(key);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    */
 }
 
 template<typename T>

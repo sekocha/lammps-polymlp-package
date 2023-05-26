@@ -30,6 +30,7 @@
 struct SingleTerm {
     double coeff;
     vector1i nlmtc_keys; 
+    vector1i type1;
 };
 
 struct lmAttribute {
@@ -61,10 +62,11 @@ typedef std::vector<SingleFeature> MultipleFeatures;
 
 class Features {
 
-    int n_fn, n_lm, n_lm_all, n_tc, n_nlmtc_all;
+    int n_fn, n_lm, n_lm_all, n_tc, n_nlmtc_all, n_type;
     std::vector<lmAttribute> lm_map;
     std::vector<nlmtcAttribute> nlmtc_map_no_conjugate, nlmtc_map;
     std::vector<ntcAttribute> ntc_map;
+    vector3i type_comb_pair;
 
     vector2i feature_combinations;
     MultipleFeatures mfeatures;
@@ -105,7 +107,9 @@ class Features {
     const vector2i& get_feature_combinations() const;
 
     const int get_n_features() const;
+    const int get_n_feature_combinations() const;
     const int get_n_nlmtc_all() const;
+    const int get_n_type() const;
 
 };
 

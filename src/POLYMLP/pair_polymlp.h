@@ -63,6 +63,7 @@ class PairPolyMLP : public Pair {
   vector1d mass;
   vector1i types;
   vector2i type_comb;
+  vector2i nlmtc_map_no_conj_key_array;
 
   struct DataPolyMLP pot;
 
@@ -85,13 +86,20 @@ class PairPolyMLP : public Pair {
                                   vector2dc& prod_sum_e,
                                   vector2dc& prod_sum_f);
 
-  void compute_linear_features(const vector1dc& prod_anlmtc,
+  void compute_linear_features(const vector1d& prod_anlmtc,
+                               const int type1,
                                vector1d& feature_values);
   template<typename T>
   void compute_products(const vector2i& map, 
                         const std::vector<T>& element,
                         std::vector<T>& prod_vals);
+
+  void compute_products_real(const vector2i& map, 
+                             const vector1dc& element,
+                             vector1d& prod_vals);
+
   double prod_real(const dc& val1, const dc& val2);
+  dc prod_real_and_complex(const double val1, const dc& val2);
 
   void read_pot(char *);
   template<typename T> T get_value(std::ifstream& input);

@@ -24,12 +24,14 @@
 #ifndef __POLYMLP_BASIS_FUNCTION_HPP
 #define __POLYMLP_BASIS_FUNCTION_HPP
 
+#include "polymlp_mlpcpp.h"
+
+/*
 #include <boost/math/special_functions/bessel.hpp>
 #include <boost/math/special_functions/legendre.hpp>
 #include <boost/math/special_functions/hermite.hpp>
 #include <boost/math/special_functions/laguerre.hpp>
-
-#include "polymlp_mlpcpp.h"
+*/
 
 double cosine_cutoff_function(const double& dis, const double& cutoff);
 
@@ -122,7 +124,7 @@ void morse_d(const double& dis,
              const double& param2,
              double& bf, 
              double& bf_d);
-
+/*
 double bessel(const double& dis, const double& param1);
 
 double neumann(const double& dis, const double& param1);
@@ -151,5 +153,6 @@ void sph_neumann_d(const double& dis,
                    const double& param1, 
                    double& bf, 
                    double& bf_d);
+*/
 
 #endif

@@ -40,6 +40,8 @@ Features::Features(const feature_params& fp, const ModelParams& modelp){
 
     n_fn = fp.params.size();
     n_tc = modelp.get_n_type_comb();
+    n_type = modelp.get_n_type();
+    type_comb_pair = modelp.get_type_comb_pair();
 
     MultipleFeatures mfeatures1;
     if (fp.des_type == "pair"){
@@ -71,10 +73,18 @@ MultipleFeatures Features::set_linear_features_pair(){
     // The order of tc and n must be fixed.
     std::vector<SingleFeature> feature_array;
     for (int tc = 0; tc < n_tc; ++tc){
+        vector1i type1;
+        for (auto& tcp1: type_comb_pair[tc]){
+            for (auto& tcp2: tcp1){
+                type1.emplace_back(tcp2);
+            }
+        }
+
         for (int n = 0; n < n_fn; ++n){
             SingleFeature feature;
             SingleTerm single;
             single.coeff = 1.0;
+            single.type1 = type1;
             const int key = mapping_ntc_to_key(tc, n);
             single.nlmtc_keys.emplace_back(key);
             feature.emplace_back(single);
@@ -96,6 +106,7 @@ MultipleFeatures Features::set_linear_features(const feature_params& fp,
         for (const auto& linear: modelp.get_linear_term_gtinv()){
             const int lm_idx = linear.lmindex;
             const auto& tc_array = linear.tcomb_index;
+            const auto& type1 = linear.type1;
             const auto& lm_list = lm_array[lm_idx];
             const auto& coeff_list = lm_coeffs[lm_idx];
 
@@ -103,6 +114,7 @@ MultipleFeatures Features::set_linear_features(const feature_params& fp,
             for (int i = 0; i < lm_list.size(); ++i){
                 SingleTerm single;
                 single.coeff = coeff_list[i];
+                single.type1 = type1;
                 for (int j = 0; j < lm_list[i].size(); ++j){
                     const auto lm = lm_list[i][j];
                     const auto tc = tc_array[j];
@@ -202,6 +214,9 @@ void Features::set_mapping_lm(const int maxl){
 const int Features::get_n_features() const {
     return mfeatures.size(); 
 }
+const int Features::get_n_feature_combinations() const {
+    return feature_combinations.size(); 
+}
 const int Features::get_n_nlmtc_all() const { 
     return n_nlmtc_all; 
 }
@@ -224,6 +239,10 @@ const std::vector<ntcAttribute>& Features::get_ntc_map() const {
 const vector2i& Features::get_feature_combinations() const { 
     return feature_combinations; 
 }
+const int Features::get_n_type() const { 
+    return n_type; 
+}
+
 
 // not used
 SingleFeature Features::product_features(const SingleFeature& feature1, 

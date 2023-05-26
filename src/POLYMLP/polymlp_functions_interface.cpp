@@ -35,11 +35,13 @@ void get_fn_(const double& dis,
             fn[n] = gauss(dis, fp.params[n][0], fp.params[n][1]) * fc;
         }
     }
+    /*
     else if (fp.pair_type == "sph_bessel"){
         for (int n = 0; n < fp.params.size(); ++n){
             fn[n] = sph_bessel(dis, fp.params[n][0], fp.params[n][1]) * fc;
         }
     }
+    */
 }
 
 void get_fn_(const double& dis, 
@@ -60,6 +62,7 @@ void get_fn_(const double& dis,
             fn_dr[n] = fn_dr_val * fc + fn_val * fc_dr;
         }
     }
+    /*
     else if (fp.pair_type == "sph_bessel"){
         for (int n = 0; n < fp.params.size(); ++n){
             sph_bessel_d(dis, fp.params[n][0], fp.params[n][1],
@@ -68,6 +71,7 @@ void get_fn_(const double& dis,
             fn_dr[n] = fn_dr_val * fc + fn_val * fc_dr;
         }
     }
+    */
 }
 
 void get_ylm_(const double polar, 
@@ -95,10 +99,20 @@ void get_ylm_(const double r,
 
 vector1d cartesian_to_spherical_(const vector1d& v){
 
+    double r, theta, phi;
+    r = sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+    theta = std::acos(v[2] / r);
+    phi = std::atan2(v[1], v[0]);
+    return vector1d {theta, phi};
+}
+
+/*
+vector1d cartesian_to_spherical_(const vector1d& v){
+
     bg::model::point<long double,3,bg::cs::cartesian> p1(v[0], v[1], v[2]);
     bg::model::point<long double,3,bg::cs::spherical<bg::radian> > p2;
     bg::transform(p1, p2);
     return vector1d {static_cast<double>(bg::get<1>(p2)),
         static_cast<double>(bg::get<0>(p2))}; // theta, phi
 }
-
+*/
