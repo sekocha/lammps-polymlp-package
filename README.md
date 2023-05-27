@@ -25,6 +25,7 @@ Building lammps with lammps-polymlp package
         ml-iap \
         phonon
         ...
+    > ulimit -s unlimited
     > cd $(lammps_src)/src
     > make yes-user-polymlp
 ```
