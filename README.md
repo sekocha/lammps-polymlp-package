@@ -34,7 +34,7 @@ Building lammps with lammps-polymlp package
     > make serial -j 36
 ```
 
-Machine learning potentials for a wide range of systems can be found in the website. If you use **lammps-polymlp** package and machine learning potentials in the repository for academic purposes, please cite the following article [1].
+Machine learning potentials for a wide range of systems can be found in the [website](http://cms.mtl.kyoto-u.ac.jp/seko/mlp-repository/index.html). If you use **lammps-polymlp** package and machine learning potentials in the repository for academic purposes, please cite the following article [1].
 
 [1] A. Seko, "Systematic development of polynomial machine learning potentials for elemental and alloy systems", J. Appl. Phys. 133, 011101 (2023).
 
