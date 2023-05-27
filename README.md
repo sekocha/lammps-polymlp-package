@@ -27,7 +27,7 @@ Building lammps with lammps-polymlp package
         ...
     > ulimit -s unlimited
     > cd $(lammps_src)/src
-    > make yes-user-polymlp
+    > make yes-polymlp
 ```
 3. Build lammps binary files. (It requires approximately ten minutes to one hour for compiling polymlp_gtinv_data.cpp.)
 ```
@@ -44,6 +44,6 @@ Lammps input commands to specify a machine learning potential
 The following lammps input commands specify a machine learning potential.
 ```
     pair_style  polymlp
-    pair_coeff * * mlp.lammp Ti Al    
+    pair_coeff * * mlp.lammp Ti Al
 ```
 
