@@ -632,7 +632,6 @@ void PairPolyMLP::compute_sum_of_prod_anlmtc(const vector2dc& anlmtc,
             dc sum_e(0.0), sum_f(0.0);
 //            dc prod;
             for (const auto& pterm: pmodel){
-                // must be examined
                 if (fabs(prod_features[pterm.prod_features_key]) > 1e-50){
                     sum_e += pterm.coeff_e 
                            * prod_features[pterm.prod_features_key] 
@@ -915,25 +914,6 @@ void PairPolyMLP::read_pot(char *file)
             }
         }
     }
-
-/*
-    if (pot.fp.des_type == "gtinv"){
-        const auto& nlmtc_map_no_conj = pot.p_obj.get_nlmtc_map_no_conjugate();
-        // must be revised
-        nlmtc_map_no_conj_key_array.resize(pot.fp.n_type);
-        for (int key = 0; key < nlmtc_map_no_conj.size(); ++key){
-            const int tc = nlmtc_map_no_conj[key].tc;
-            for (int type1 = 0; type1 < pot.fp.n_type; ++type1){
-                for (const auto tc2: type_comb[type1]){
-                    if (tc2 == tc){
-                        nlmtc_map_no_conj_key_array[type1].emplace_back(key);
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    */
 }
 
 template<typename T>
