@@ -46,6 +46,6 @@ Lammps input commands to specify a machine learning potential
 The following lammps input commands specify a machine learning potential.
 ```
     pair_style  polymlp
-    pair_coeff * * mlp.lammp Ti Al
+    pair_coeff * * polymlp.in Ti Al
 ```
 
