@@ -1,26 +1,18 @@
-/****************************************************************************
-  
-  This program is free software; you can redistribute it and/or
-  modify it under the terms of the GNU General Public License
-  as published by the Free Software Foundation; either version 2
-  of the License, or (at your option) any later version.
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
 
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to
-  the Free Software Foundation, Inc., 51 Franklin Street,
-  Fifth Floor, Boston, MA 02110-1301, USA, or see
-    http://www.gnu.org/copyleft/gpl.txt
-
- ******************************************************************************/
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
    Contributing author: Atsuto Seko
-        seko@cms.mtl.kyoto-u.ac.jp
 ------------------------------------------------------------------------- */
 
 #include <math.h>
@@ -42,6 +34,7 @@
 #include "pair_polymlp.h"
 #include "time.h"
 
+#include <omp.h>
 using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
@@ -506,7 +499,7 @@ void PairPolyMLP::compute_anlmtc_openmp(vector2dc& anlmtc){
     vector2d anlmtc_i(inum, vector1d(nlmtc_map_no_conj.size(), 0.0));
 
     #ifdef _OPENMP
-    #pragma omp parallel for schedule(auto)
+    #pragma omp parallel for schedule(guided)
     #endif
     for (int ii = 0; ii < inum; ii++) {
         int i,j,type1,type2,jnum,*ilist,*jlist;
@@ -602,7 +595,7 @@ void PairPolyMLP::compute_sum_of_prod_anlmtc(const vector2dc& anlmtc,
     prod_sum_f = vector2dc(inum, vector1dc(n_head_keys));
 
     #ifdef _OPENMP
-    #pragma omp parallel for schedule(auto)
+    #pragma omp parallel for schedule(guided)
     #endif
     for (int ii = 0; ii < inum; ii++) {
         int i,type1,*ilist;
@@ -640,6 +633,7 @@ void PairPolyMLP::compute_sum_of_prod_anlmtc(const vector2dc& anlmtc,
             dc sum_e(0.0), sum_f(0.0);
 //            dc prod;
             for (const auto& pterm: pmodel){
+                // TODO: examine accuracy
                 if (fabs(prod_features[pterm.prod_features_key]) > 1e-50){
                     sum_e += pterm.coeff_e 
                            * prod_features[pterm.prod_features_key] 
@@ -876,16 +870,14 @@ void PairPolyMLP::read_pot(char *file)
     }
 
     // line 8-10: gtinv_order, gtinv_maxl and gtinv_sym (optional)
+    int gtinv_order;
+    vector1i gtinv_maxl;
+    std::vector<bool> gtinv_sym;
     if (pot.fp.des_type == "gtinv"){
-        int gtinv_order = get_value<int>(input);
+        gtinv_order = get_value<int>(input);
         int size = gtinv_order - 1;
-        vector1i gtinv_maxl = get_value_array<int>(input, size);
-        std::vector<bool> gtinv_sym = get_value_array<bool>(input, size);
-
-        Readgtinv rgt(gtinv_order, gtinv_maxl, gtinv_sym, ele.size());
-        pot.fp.lm_array = rgt.get_lm_seq();
-        pot.fp.l_comb = rgt.get_l_comb();
-        pot.fp.lm_coeffs = rgt.get_lm_coeffs(); 
+        gtinv_maxl = get_value_array<int>(input, size);
+        gtinv_sym = get_value_array<bool>(input, size);
     }
 
     // line 11: number of regression coefficients
@@ -905,7 +897,23 @@ void PairPolyMLP::read_pot(char *file)
     // last line: atomic mass
     mass = get_value_array<double>(input, ele.size());
 
-    const bool icharge = false;
+    bool icharge = get_value<bool>(input);
+
+    if (pot.fp.des_type == "gtinv"){
+        std::string tag;
+        int version = get_value<int>(input, tag);
+        if (version != 2){
+            version = 1;
+        }
+
+        // version must be implemented.
+        Readgtinv rgt(gtinv_order, gtinv_maxl, gtinv_sym, ele.size(), version);
+        pot.fp.lm_array = rgt.get_lm_seq();
+        pot.fp.l_comb = rgt.get_l_comb();
+        pot.fp.lm_coeffs = rgt.get_lm_coeffs(); 
+    }
+
+    /*--------------------------------------------------*/
     pot.modelp = ModelParams(pot.fp, icharge);
     const Features f_obj(pot.fp, pot.modelp);
     pot.p_obj = Potential(f_obj, reg_coeffs);
@@ -937,6 +945,23 @@ T PairPolyMLP::get_value(std::ifstream& input){
 
     return val;
 }
+
+template<typename T>
+T PairPolyMLP::get_value(std::ifstream& input, std::string& tag){
+
+    std::string line;
+    std::stringstream ss;
+
+    T val;
+    std::getline( input, line );
+    ss << line;
+    ss >> val;
+    ss >> tag;
+    ss >> tag;
+
+    return val;
+}
+
 
 template<typename T>
 std::vector<T> PairPolyMLP::get_value_array(std::ifstream& input, 
