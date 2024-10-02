@@ -1,3 +1,10 @@
+/****************************************************************************
+
+        Copyright (C) 2024 Atsuto Seko
+                seko@cms.mtl.kyoto-u.ac.jp
+
+****************************************************************************/
+
 #include "polymlp_functions_interface.h"
 
 void get_fn_(const double& dis, 

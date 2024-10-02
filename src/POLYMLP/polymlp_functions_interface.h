@@ -1,3 +1,10 @@
+/****************************************************************************
+
+        Copyright (C) 2024 Atsuto Seko
+                seko@cms.mtl.kyoto-u.ac.jp
+
+****************************************************************************/
+
 #ifndef __POLYMLP_FUNCTIONS_INTERFACE
 #define __POLYMLP_FUNCTIONS_INTERFACE
 

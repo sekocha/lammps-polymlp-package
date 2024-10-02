@@ -1,3 +1,10 @@
+/**************************************************************************** 
+
+        Copyright (C) 2024 Atsuto Seko
+                seko@cms.mtl.kyoto-u.ac.jp
+
+*****************************************************************************/
+
 /*****************************************************************************
 
         SingleTerm: [coeff,[(n1,l1,m1,tc1), (n2,l2,m2,tc2), ...]]
@@ -77,18 +84,18 @@ void Potential::set_mapping_prod(const Features& f_obj, const bool erased){
 
     std::vector<std::set<vector1i> > nonequiv_keys(n_type);
 
-    int count1(0), count2(0);
+//    int count1(0), count2(0);
     const auto& mfeatures = f_obj.get_features();
     for (const auto& sfeature: mfeatures){
         const auto type1 = sfeature[0].type1;
         for (const auto& sterm: sfeature){
             for (const auto& t1: type1){
                 nonequiv_keys[t1].insert(sterm.nlmtc_keys);
-                ++count2;
+ //               ++count2;
             }
             if (erased == true){
-                for (int i = 0; i < sterm.nlmtc_keys.size(); ++i){
-                    int head_key = sterm.nlmtc_keys[i];
+                for (size_t i = 0; i < sterm.nlmtc_keys.size(); ++i){
+                    //int head_key = sterm.nlmtc_keys[i];
                     const vector1i keys = erase_a_key(sterm.nlmtc_keys, i);
                     for (const auto& t1: type1){
                         nonequiv_keys[t1].insert(keys);
@@ -113,7 +120,7 @@ void Potential::set_mapping_prod_erased(const Features& f_obj){
     for (const auto& sfeature: mfeatures){
         const auto type1 = sfeature[0].type1;
         for (const auto& sterm: sfeature){
-            for (int i = 0; i < sterm.nlmtc_keys.size(); ++i){
+            for (size_t i = 0; i < sterm.nlmtc_keys.size(); ++i){
                 int head_key = sterm.nlmtc_keys[i];
                 bool append = true;
                 if (eliminate_conj == true and 
@@ -176,7 +183,7 @@ void Potential::set_mapping_prod_of_features(const Features& f_obj){
     int count(0);
     for (const auto& comb: feature_combinations){
         const vector1i& type1 = type1_feature_combs[count];
-        for (int ci = 0; ci < comb.size(); ++ci){
+        for (size_t ci = 0; ci < comb.size(); ++ci){
             vector1i keys = erase_a_key(comb, ci);
             for (const auto& t1: type1){
                 nonequiv_keys[t1].insert(keys);
@@ -200,7 +207,7 @@ void Potential::get_types_for_feature_combinations(const Features& f_obj){
     // finding atom types with nonzero features and feature products
     for (const auto& comb: feature_combinations){
         std::set<int> type1_intersection;
-        for (int ci = 0; ci < comb.size(); ++ci){
+        for (size_t ci = 0; ci < comb.size(); ++ci){
             const auto& sfeature = mfeatures[comb[ci]];
             std::set<int> type1_s(sfeature[0].type1.begin(), 
                                   sfeature[0].type1.end());
@@ -232,13 +239,13 @@ void Potential::set_terms_using_mappings(const Features& f_obj,
     int idx = 0;
     for (const auto& comb: feature_combinations){
         int n_prods(0);
-        for (int ci = 0; ci < comb.size(); ++ci){
+        for (size_t ci = 0; ci < comb.size(); ++ci){
             n_prods += mfeatures[comb[ci]][0].nlmtc_keys.size();
         }
 
         const auto& type1 = type1_feature_combs[idx];
         for (const auto& t1: type1){
-            for (int ci = 0; ci < comb.size(); ++ci){
+            for (size_t ci = 0; ci < comb.size(); ++ci){
                 int head_c = comb[ci];
                 vector1i f_keys = erase_a_key(comb, ci);
                 const int prod_features_key 

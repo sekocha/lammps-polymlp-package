@@ -1,3 +1,10 @@
+/****************************************************************************
+
+        Copyright (C) 2024 Atsuto Seko
+                seko@cms.mtl.kyoto-u.ac.jp
+
+*****************************************************************************/
+
 #ifndef __POLYMLP
 #define __POLYMLP
 
@@ -11,6 +18,7 @@
 #include <complex>
 #include <numeric>
 #include <algorithm>
+#include <iterator>
 
 using vector1i = std::vector<int>;
 using vector2i = std::vector<vector1i>;
@@ -48,5 +56,19 @@ struct feature_params {
     vector2i l_comb;
     vector2d lm_coeffs;
 };
+
+// Hash function must be examined
+class HashVI {
+    public:
+        size_t operator()(const std::vector<int> &x) const {
+            const int C = 997;
+            size_t t = 0;
+            for (size_t i = 0; i != x.size(); ++i) {
+                t = t * C + x[i];
+            }
+            return t;
+        }
+};
+
 
 #endif

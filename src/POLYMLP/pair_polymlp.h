@@ -1,26 +1,18 @@
-/****************************************************************************
-  
-  This program is free software; you can redistribute it and/or
-  modify it under the terms of the GNU General Public License
-  as published by the Free Software Foundation; either version 2
-  of the License, or (at your option) any later version.
+/* -*- c++ -*- ----------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
 
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to
-  the Free Software Foundation, Inc., 51 Franklin Street,
-  Fifth Floor, Boston, MA 02110-1301, USA, or see
-    http://www.gnu.org/copyleft/gpl.txt
-
- ******************************************************************************/
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
    Contributing author: Atsuto Seko
-        seko@cms.mtl.kyoto-u.ac.jp
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
@@ -111,6 +103,9 @@ class PairPolyMLP : public Pair {
 
   void read_pot(char *);
   template<typename T> T get_value(std::ifstream& input);
+
+  template<typename T>
+    T get_value(std::ifstream& input, std::string& tag);
   template<typename T> std::vector<T> 
     get_value_array(std::ifstream& input, const int& size);
 

@@ -1,21 +1,16 @@
+/****************************************************************************
+
+        Copyright (C) 2024 Atsuto Seko
+                seko@cms.mtl.kyoto-u.ac.jp
+
+****************************************************************************/
+
 #ifndef __POLYMLP_POTENTIAL
 #define __POLYMLP_POTENTIAL
 
 #include "polymlp_mlpcpp.h"
 #include "polymlp_features.h"
 
-// Hash function must be examined
-class HashVI { 
-    public:
-        size_t operator()(const std::vector<int> &x) const {
-            const int C = 997;
-            size_t t = 0;
-            for (int i = 0; i != x.size(); ++i) {
-                t = t * C + x[i];
-            }
-            return t;
-        }
-};
 
 struct MappedSingleTerm {
     double coeff;

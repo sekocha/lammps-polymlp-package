@@ -1,3 +1,10 @@
+/****************************************************************************
+
+        Copyright (C) 2024 Atsuto Seko
+                seko@cms.mtl.kyoto-u.ac.jp
+
+****************************************************************************/
+
 #ifndef __POLYMLP_BASIS_FUNCTION_HPP
 #define __POLYMLP_BASIS_FUNCTION_HPP
 
