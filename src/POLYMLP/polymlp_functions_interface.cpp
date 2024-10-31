@@ -3,19 +3,40 @@
         Copyright (C) 2024 Atsuto Seko
                 seko@cms.mtl.kyoto-u.ac.jp
 
-****************************************************************************/
+*****************************************************************************/
 
 #include "polymlp_functions_interface.h"
 
-void get_fn_(const double& dis, 
-             const struct feature_params& fp, 
+void get_fn_(const double& dis,
+             const struct feature_params& fp,
+             const vector2d& params,
+             vector1d& fn){
+
+    double fc = cosine_cutoff_function(dis, fp.cutoff);
+
+    fn.resize(params.size());
+    if (fp.pair_type == "gaussian"){
+        for (size_t n = 0; n < params.size(); ++n){
+            fn[n] = gauss(dis, params[n][0], params[n][1]) * fc;
+        }
+    }
+    /*
+    else if (fp.pair_type == "sph_bessel"){
+        for (int n = 0; n < fp.params.size(); ++n){
+            fn[n] = sph_bessel(dis, fp.params[n][0], fp.params[n][1]) * fc;
+        }
+    }
+    */
+}
+void get_fn_(const double& dis,
+             const struct feature_params& fp,
              vector1d& fn){
 
     double fc = cosine_cutoff_function(dis, fp.cutoff);
 
     fn.resize(fp.params.size());
     if (fp.pair_type == "gaussian"){
-        for (int n = 0; n < fp.params.size(); ++n){
+        for (size_t n = 0; n < fp.params.size(); ++n){
             fn[n] = gauss(dis, fp.params[n][0], fp.params[n][1]) * fc;
         }
     }
@@ -28,9 +49,40 @@ void get_fn_(const double& dis,
     */
 }
 
-void get_fn_(const double& dis, 
-             const struct feature_params& fp, 
-             vector1d& fn, 
+void get_fn_(const double& dis,
+             const struct feature_params& fp,
+             const vector2d& params,
+             vector1d& fn,
+             vector1d& fn_dr){
+
+    double fn_val, fn_dr_val;
+    const double fc = cosine_cutoff_function(dis, fp.cutoff);
+    const double fc_dr = cosine_cutoff_function_d(dis, fp.cutoff);
+
+    fn.resize(params.size());
+    fn_dr.resize(params.size());
+    if (fp.pair_type == "gaussian"){
+        for (size_t n = 0; n < params.size(); ++n){
+            gauss_d(dis, params[n][0], params[n][1], fn_val, fn_dr_val);
+            fn[n] = fn_val * fc;
+            fn_dr[n] = fn_dr_val * fc + fn_val * fc_dr;
+        }
+    }
+    /*
+    else if (fp.pair_type == "sph_bessel"){
+        for (int n = 0; n < fp.params.size(); ++n){
+            sph_bessel_d(dis, fp.params[n][0], fp.params[n][1],
+                         fn_val, fn_dr_val);
+            fn[n] = fn_val * fc;
+            fn_dr[n] = fn_dr_val * fc + fn_val * fc_dr;
+        }
+    }
+    */
+}
+
+void get_fn_(const double& dis,
+             const struct feature_params& fp,
+             vector1d& fn,
              vector1d& fn_dr){
 
     double fn_val, fn_dr_val;
@@ -40,7 +92,7 @@ void get_fn_(const double& dis,
     fn.resize(fp.params.size());
     fn_dr.resize(fp.params.size());
     if (fp.pair_type == "gaussian"){
-        for (int n = 0; n < fp.params.size(); ++n){
+        for (size_t n = 0; n < fp.params.size(); ++n){
             gauss_d(dis, fp.params[n][0], fp.params[n][1], fn_val, fn_dr_val);
             fn[n] = fn_val * fc;
             fn_dr[n] = fn_dr_val * fc + fn_val * fc_dr;
@@ -58,22 +110,23 @@ void get_fn_(const double& dis,
     */
 }
 
-void get_ylm_(const double polar, 
-              const double azimuthal, 
-              const int lmax, 
+
+void get_ylm_(const double polar,
+              const double azimuthal,
+              const int lmax,
               vector1dc& ylm){
 
     SphericalHarmonics sh(lmax);
     sh.compute_ylm(cos(polar), azimuthal, ylm);
 }
 
-void get_ylm_(const double r, 
-              const double polar, 
-              const double azimuthal, 
-              const int lmax, 
-              vector1dc& ylm, 
-              vector1dc& ylm_dx, 
-              vector1dc& ylm_dy, 
+void get_ylm_(const double r,
+              const double polar,
+              const double azimuthal,
+              const int lmax,
+              vector1dc& ylm,
+              vector1dc& ylm_dx,
+              vector1dc& ylm_dy,
               vector1dc& ylm_dz){
 
     SphericalHarmonics sh(lmax);
