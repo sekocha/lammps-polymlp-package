@@ -28,6 +28,7 @@ PairStyle(polymlp,PairPolyMLP)
 
 #include "polymlp_mlpcpp.h"
 #include "polymlp_parse_potential.h"
+#include "polymlp_parse_potential_legacy.h"
 #include "polymlp_read_gtinv.h"
 #include "polymlp_functions_interface.h"
 #include "polymlp_products.h"

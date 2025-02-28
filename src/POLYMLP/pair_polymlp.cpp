@@ -782,8 +782,14 @@ double PairPolyMLP::init_one(int i, int j)
 void PairPolyMLP::read_pot(char *file)
 {
 
+    const bool legacy = check_polymlp_legacy(file);
     vector1d reg_coeffs;
-    parse_polymlp(file, pot.fp, reg_coeffs, ele, mass);
+    if (legacy == true){
+        parse_polymlp_legacy(file, pot.fp, reg_coeffs, ele, mass);
+    }
+    else {
+        parse_polymlp(file, pot.fp, reg_coeffs, ele, mass);
+    }
 
     if (pot.fp.feature_type != "gtinv" and pot.fp.feature_type != "pair"){
         error->all(FLERR,"feature_type must be pair or gtinv");
