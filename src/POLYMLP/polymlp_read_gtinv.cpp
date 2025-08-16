@@ -16,8 +16,8 @@ Readgtinv::Readgtinv(const int& gtinv_order,
 
     if (version == 1)
         screening(gtinv_order, gtinv_maxl, gtinv_sym, n_type);
-    //else if (version == 2)
-    //    screening_ver2(gtinv_order, gtinv_maxl, n_type);
+    // else if (version == 2)
+    //     screening_ver2(gtinv_order, gtinv_maxl, n_type);
 
 }
 
