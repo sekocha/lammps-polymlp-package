@@ -70,7 +70,7 @@ pair_style  polymlp
 pair_coeff * * polymlp.yaml Ti Al
 ```
 
-## Use of Hybrid Polynomial MLPs 
+### Use of Hybrid Polynomial MLPs 
 In hybrid polynomial MLPs, the potential energy is represented as a sum of multiple polynomial MLPs, where the regression coefficients of all models are determined simultaneously.
 When performing simulations with hybrid polynomial MLPs in LAMMPS, [pair_style hybrid command](https://www.afs.enea.it/software/lammps/doc19/html/pair_hybrid.html) can be used:
 ```
