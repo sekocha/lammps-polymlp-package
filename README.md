@@ -1,6 +1,26 @@
 # lammps-polymlp-package
 A package of LAMMPS software enabling simulations using polynomial machine learning potentials
 
+## Polynomial Machine Learning Potentials
+A polynomial MLP represents the potential energy as a polynomial function of linearly independent polynomial invariants of the O(3) group. Developed polynomial MLPs are available in [Polynomial Machine Learning Potential Repository](http://cms.mtl.kyoto-u.ac.jp/seko/mlp-repository/index.html).
+
+## Citation of lammps-polymlp-package
+
+“Tutorial: Systematic development of polynomial machine learning potentials for elemental and alloy systems”, [A. Seko, J. Appl. Phys. 133, 011101 (2023)](https://doi.org/10.1063/5.0129045)
+
+```
+@article{pypolymlp,
+    author = {Seko, Atsuto},
+    title = "{"Tutorial: Systematic development of polynomial machine learning potentials for elemental and alloy systems"}",
+    journal = {J. Appl. Phys.},
+    volume = {133},
+    number = {1},
+    pages = {011101},
+    year = {2023},
+    month = {01},
+}
+```
+
 ## Building lammps with lammps-polymlp package
 (**lammps-polymlp-package** is tested using LAMMPS_VERSION "lammps-23Jun2022”)
 
@@ -36,25 +56,6 @@ A package of LAMMPS software enabling simulations using polynomial machine learn
 
 Note that MPI is not currently available for the lammps-polymlp package, but OpenMP is supported. Even when using the OpenMP-supported lammps-polymlp package, you should compile LAMMPS using the command `make serial`. Parallel calculations can be performed using OpenMP with `lmp_serial`.
 
-## Polynomial Machine Learning Potentials
-A polynomial MLP represents the potential energy as a polynomial function of linearly independent polynomial invariants of the O(3) group. Developed polynomial MLPs are available in [Polynomial Machine Learning Potential Repository](http://cms.mtl.kyoto-u.ac.jp/seko/mlp-repository/index.html).
-
-## Citation of lammps-polymlp-package
-
-“Tutorial: Systematic development of polynomial machine learning potentials for elemental and alloy systems”, [A. Seko, J. Appl. Phys. 133, 011101 (2023)](https://doi.org/10.1063/5.0129045)
-
-```
-@article{pypolymlp,
-    author = {Seko, Atsuto},
-    title = "{"Tutorial: Systematic development of polynomial machine learning potentials for elemental and alloy systems"}",
-    journal = {J. Appl. Phys.},
-    volume = {133},
-    number = {1},
-    pages = {011101},
-    year = {2023},
-    month = {01},
-}
-```
 
 ## Lammps Input Commands to Specify Polynomial MLPs
 Molecular dynamics and other calculations available in LAMMPS, including those using user packages, can be performed by following the standard LAMMPS documentation, except for the specification of `pair_style` and `pair_coeff`.
