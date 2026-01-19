@@ -42,16 +42,15 @@ class PairPolyMLP : public Pair {
   virtual void coeff(int, char **);
   
   virtual double init_one(int, int);
- /* virtual void init_style();
-  */
 
- protected:
+  protected:
 
   virtual void allocate();
 
   PolymlpAPI polymlp;
   double cutmax;
   vector1i types;
+  vector3i nlmtp_attrs_ids;
 
   void compute_pair(int eflag, int vflag);
   void compute_gtinv(int eflag, int vflag);
@@ -76,6 +75,11 @@ class PairPolyMLP : public Pair {
     vector2dc& prod_sum_e, 
     vector2dc& prod_sum_f
   );
+  void set_nlmtp_attrs_ids();
+
+  double prod_real(const dc val1, const dc val2){
+    return val1.real() * val2.real() - val1.imag() * val2.imag();
+  }
 
 };
 

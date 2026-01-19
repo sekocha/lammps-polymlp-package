@@ -90,13 +90,6 @@ void PairPolyMLP::compute_pair(int eflag, int vflag)
     compute_sum_of_prod_antp(antp, prod_sum_e, prod_sum_f);
 
     vector2d evdwl_array(inum), fpair_array(inum);
-    for (int ii = 0; ii < inum; ii++) {
-        int i = list->ilist[ii];
-        int jnum = list->numneigh[i];
-        evdwl_array[ii].resize(jnum);
-        fpair_array[ii].resize(jnum);
-    }
-
     const auto& fp = polymlp.get_fp();
     const auto& maps = polymlp.get_maps();
     const auto& type_pairs = maps.type_pairs;
@@ -117,6 +110,9 @@ void PairPolyMLP::compute_pair(int eflag, int vflag)
         type1 = types[tagi];
         jnum = list->numneigh[i];
         jlist = list->firstneigh[i];
+
+        evdwl_array[ii].resize(jnum);
+        fpair_array[ii].resize(jnum);
 
         const auto& maps_type = maps.maps_type[type1];
         const auto& ntp_attrs = maps_type.ntp_attrs;
@@ -173,7 +169,7 @@ void PairPolyMLP::compute_pair(int eflag, int vflag)
                 f[i][0] += fpair*delx;
                 f[i][1] += fpair*dely;
                 f[i][2] += fpair*delz;
-                //            if (newton_pair || j < nlocal)
+                // if (newton_pair || j < nlocal)
                 f[j][0] -= fpair*delx;
                 f[j][1] -= fpair*dely;
                 f[j][2] -= fpair*delz;
@@ -295,15 +291,6 @@ void PairPolyMLP::compute_gtinv(int eflag, int vflag)
     clock_t t3 = clock();
 
     vector2d evdwl_array(inum), fx_array(inum), fy_array(inum), fz_array(inum);
-    for (int ii = 0; ii < inum; ii++) {
-        int i = list->ilist[ii];
-        int jnum = list->numneigh[i];
-        evdwl_array[ii].resize(jnum);
-        fx_array[ii].resize(jnum);
-        fy_array[ii].resize(jnum);
-        fz_array[ii].resize(jnum);
-    }
-
     const auto& fp = polymlp.get_fp();
     const auto& maps = polymlp.get_maps();
     const auto& type_pairs = maps.type_pairs;
@@ -328,6 +315,11 @@ void PairPolyMLP::compute_gtinv(int eflag, int vflag)
         jnum = list->numneigh[i];
         jlist = list->firstneigh[i];
 
+        evdwl_array[ii].resize(jnum);
+        fx_array[ii].resize(jnum);
+        fy_array[ii].resize(jnum);
+        fz_array[ii].resize(jnum);
+
         const auto& maps_type = maps.maps_type[type1];
         const auto& nlmtp_attrs_noconj = maps_type.nlmtp_attrs_noconj;
 
@@ -345,39 +337,46 @@ void PairPolyMLP::compute_gtinv(int eflag, int vflag)
                 const vector1d diff = {delx,dely,delz};
                 const vector1d &sph = cartesian_to_spherical_(diff);
                 get_fn_(dis, fp, params, fn, fn_d);
-                get_ylm_(dis, sph[0], sph[1], fp.maxl, 
-                         ylm, ylm_dx, ylm_dy, ylm_dz);
+                get_ylm_(dis, sph[0], sph[1], fp.maxl, ylm, ylm_dx, ylm_dy, ylm_dz);
 
                 evdwl = 0.0, fx = 0.0, fy = 0.0, fz = 0.0;
-                for (const auto& nlmtp: nlmtp_attrs_noconj){
-                    if (tp == nlmtp.tp){
-                        const auto& lm_attr = nlmtp.lm;
-                        const int ylmkey = lm_attr.ylmkey;
-                        const int idx_i = nlmtp.ilocal_noconj_id;
-                        const int idx_j = nlmtp.jlocal_noconj_id;
-                        val = fn[nlmtp.n_id] * ylm[ylmkey];
-                        d1 = fn_d[nlmtp.n_id] * ylm[ylmkey] / dis;
-                        valx = - (d1 * delx + fn[nlmtp.n_id] * ylm_dx[ylmkey]);
-                        valy = - (d1 * dely + fn[nlmtp.n_id] * ylm_dy[ylmkey]);
-                        valz = - (d1 * delz + fn[nlmtp.n_id] * ylm_dz[ylmkey]);
-                        const auto& prod_ei = prod_sum_e[tagi][idx_i];
-                        const auto& prod_ej = prod_sum_e[tagj][idx_j];
-                        const auto& prod_fi = prod_sum_f[tagi][idx_i];
-                        const auto& prod_fj = prod_sum_f[tagj][idx_j];
-                        const dc sum_e = prod_ei + prod_ej * lm_attr.sign_j;
-                        const dc sum_f = prod_fi + prod_fj * lm_attr.sign_j;
-                        if (lm_attr.m == 0){
-                            evdwl += 0.5 * prod_real(val, sum_e);
-                            fx += 0.5 * prod_real(valx, sum_f);
-                            fy += 0.5 * prod_real(valy, sum_f);
-                            fz += 0.5 * prod_real(valz, sum_f);
-                        }
-                        else {
-                            evdwl += prod_real(val, sum_e);
-                            fx += prod_real(valx, sum_f);
-                            fy += prod_real(valy, sum_f);
-                            fz += prod_real(valz, sum_f);
-                        }
+                const auto& ids = nlmtp_attrs_ids[type1][tp];
+                const double inv_dis = 1.0 / dis;
+                for (const int inlmtp: ids){
+                    const auto& nlmtp = nlmtp_attrs_noconj[inlmtp];
+                    const auto& lm_attr = nlmtp.lm;
+                    const int nid = nlmtp.n_id;
+                    const double fn_val  = fn[nid];
+                    const double fn_d_val = fn_d[nid];
+                    const int ylmkey = lm_attr.ylmkey;
+                    const auto& ylm_val = ylm[ylmkey];
+                    const auto& ylm_dx_val = ylm_dx[ylmkey];
+                    const auto& ylm_dy_val = ylm_dy[ylmkey];
+                    const auto& ylm_dz_val = ylm_dz[ylmkey];
+                    const int idx_i = nlmtp.ilocal_noconj_id;
+                    const int idx_j = nlmtp.jlocal_noconj_id;
+                    val = fn_val * ylm_val;
+                    d1 = fn_d_val * ylm_val * inv_dis;
+                    valx = - (d1 * delx + fn_val * ylm_dx_val);
+                    valy = - (d1 * dely + fn_val * ylm_dy_val);
+                    valz = - (d1 * delz + fn_val * ylm_dz_val);
+                    const auto& prod_ei = prod_sum_e[tagi][idx_i];
+                    const auto& prod_ej = prod_sum_e[tagj][idx_j];
+                    const auto& prod_fi = prod_sum_f[tagi][idx_i];
+                    const auto& prod_fj = prod_sum_f[tagj][idx_j];
+                    const dc sum_e = prod_ei + prod_ej * lm_attr.sign_j;
+                    const dc sum_f = prod_fi + prod_fj * lm_attr.sign_j;
+                    if (lm_attr.m == 0){
+                        evdwl += 0.5 * prod_real(val, sum_e);
+                        fx += 0.5 * prod_real(valx, sum_f);
+                        fy += 0.5 * prod_real(valy, sum_f);
+                        fz += 0.5 * prod_real(valz, sum_f);
+                    }
+                    else {
+                        evdwl += prod_real(val, sum_e);
+                        fx += prod_real(valx, sum_f);
+                        fy += prod_real(valy, sum_f);
+                        fz += prod_real(valz, sum_f);
                     }
                 }
                 evdwl_array[ii][jj] = evdwl;
@@ -415,7 +414,6 @@ void PairPolyMLP::compute_gtinv(int eflag, int vflag)
                 fy = fy_array[ii][jj]; 
                 fz = fz_array[ii][jj]; 
                 f[i][0] += fx, f[i][1] += fy, f[i][2] += fz;
-                // if (newton_pair || j < nlocal)
                 f[j][0] -= fx, f[j][1] -= fy, f[j][2] -= fz;
                 if (evflag) {
                     ev_tally_xyz(i,j,nlocal,newton_pair,
@@ -446,7 +444,6 @@ void PairPolyMLP::compute_anlmtp(vector2dc& anlmtp){
         anlmtp_r[tag[i]-1] = vector1d(nlmtp_attrs_noconj.size(), 0.0);
         anlmtp_i[tag[i]-1] = vector1d(nlmtp_attrs_noconj.size(), 0.0);
     }
-
     #ifdef _OPENMP
     #pragma omp parallel for schedule(guided)
     #endif
@@ -479,29 +476,30 @@ void PairPolyMLP::compute_anlmtp(vector2dc& anlmtp){
                 const auto& params = tp_to_params[tp];
                 get_fn_(dis, fp, params, fn);
                 get_ylm_(sph[0], sph[1], fp.maxl, ylm);
-                for (const auto& nlmtp: nlmtp_attrs_noconj){
-                    if (tp == nlmtp.tp){
-                        const auto& lm_attr = nlmtp.lm;
-                        const int idx_i = nlmtp.ilocal_noconj_id;
-                        const int idx_j = nlmtp.jlocal_noconj_id;
-                        val = fn[nlmtp.n_id] * ylm[lm_attr.ylmkey];
-                        #ifdef _OPENMP
-                        #pragma omp atomic
-                        #endif
-                        anlmtp_r[tag[i]-1][idx_i] += val.real();
-                        #ifdef _OPENMP
-                        #pragma omp atomic
-                        #endif
-                        anlmtp_r[tag[j]-1][idx_j] += val.real() * lm_attr.sign_j;
-                        #ifdef _OPENMP
-                        #pragma omp atomic
-                        #endif
-                        anlmtp_i[tag[i]-1][idx_i] += val.imag();
-                        #ifdef _OPENMP
-                        #pragma omp atomic
-                        #endif
-                        anlmtp_i[tag[j]-1][idx_j] += val.imag() * lm_attr.sign_j;
-                    }
+
+                const auto& ids = nlmtp_attrs_ids[type1][tp];
+                for (int inlmtp: ids){
+                    const auto& nlmtp = nlmtp_attrs_noconj[inlmtp];
+                    const auto& lm_attr = nlmtp.lm;
+                    const int idx_i = nlmtp.ilocal_noconj_id;
+                    const int idx_j = nlmtp.jlocal_noconj_id;
+                    val = fn[nlmtp.n_id] * ylm[lm_attr.ylmkey];
+                    #ifdef _OPENMP
+                    #pragma omp atomic
+                    #endif
+                    anlmtp_r[tag[i]-1][idx_i] += val.real();
+                    #ifdef _OPENMP
+                    #pragma omp atomic
+                    #endif
+                    anlmtp_r[tag[j]-1][idx_j] += val.real() * lm_attr.sign_j;
+                    #ifdef _OPENMP
+                    #pragma omp atomic
+                    #endif
+                    anlmtp_i[tag[i]-1][idx_i] += val.imag();
+                    #ifdef _OPENMP
+                    #pragma omp atomic
+                    #endif
+                    anlmtp_i[tag[j]-1][idx_j] += val.imag() * lm_attr.sign_j;
                 }
             }
         }
@@ -575,7 +573,7 @@ void PairPolyMLP::allocate()
 
 void PairPolyMLP::settings(int narg, char **arg)
 {
- // force->newton_pair = 0;
+// force->newton_pair = 0;
   force->newton_pair = 1;
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -603,7 +601,6 @@ void PairPolyMLP::coeff(int narg, char **arg)
     polymlp.parse_polymlp_file(arg[2], ele, mass);
 
     std::cout << "Setting polymlp model required." << std::endl;
-    // polymlp.set_potential_model();
 
     const auto& fp = polymlp.get_fp();
     if (fp.feature_type != "gtinv" and fp.feature_type != "pair"){
@@ -632,8 +629,30 @@ void PairPolyMLP::coeff(int narg, char **arg)
     for (int i = 0; i < atom->natoms; ++i){
         types.emplace_back(map[(atom->type)[i]-1]);
     }
+
+    if (fp.feature_type == "gtinv") 
+        set_nlmtp_attrs_ids();
+
     std::cout << "Setting polymlp succeeded." << std::endl;
     std::cout << "-----------------------------" << std::endl;
+}
+
+void PairPolyMLP::set_nlmtp_attrs_ids(){
+
+    const auto& fp = polymlp.get_fp();
+    const auto& maps = polymlp.get_maps();
+    const auto n_tp = maps.tp_to_params.size();
+    for (int type1 = 0; type1 < fp.n_type; ++type1){
+        const auto& maps_type = maps.maps_type[type1];
+        const auto& nlmtp_attrs_noconj = maps_type.nlmtp_attrs_noconj;
+        int seq = 0;
+        vector2i ids(n_tp);
+        for (const auto& nlmtp: nlmtp_attrs_noconj){
+            ids[nlmtp.tp].emplace_back(seq);
+            ++seq;
+        }
+        nlmtp_attrs_ids.emplace_back(ids);
+    }
 }
 
 
