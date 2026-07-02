@@ -51,6 +51,7 @@ class PairPolyMLP : public Pair {
   double cutmax;
   vector1i types;
   vector3i nlmtp_attrs_ids;
+  vector1i map;
 
   void compute_pair(int eflag, int vflag);
   void compute_gtinv(int eflag, int vflag);
@@ -76,6 +77,7 @@ class PairPolyMLP : public Pair {
     vector2dc& prod_sum_f
   );
   void set_nlmtp_attrs_ids();
+  void set_types();
 
   double prod_real(const dc val1, const dc val2){
     return val1.real() * val2.real() - val1.imag() * val2.imag();

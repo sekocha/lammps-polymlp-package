@@ -65,6 +65,7 @@ PairPolyMLP::~PairPolyMLP()
 void PairPolyMLP::compute(int eflag, int vflag)
 {
     const auto& fp = polymlp.get_fp();
+    set_types();
     if (fp.feature_type == "pair"){
         compute_pair(eflag, vflag);
     }
@@ -609,9 +610,12 @@ void PairPolyMLP::coeff(int narg, char **arg)
     cutmax = fp.cutoff;
     cutforce = fp.cutoff;
 
+    if (fp.feature_type == "gtinv") 
+        set_nlmtp_attrs_ids();
+
     // read args that map atom types to elements in potential file
     // map[i] = which element the Ith atom type is, -1 if NULL
-    std::vector<int> map(atom->ntypes);
+    map.resize(atom->ntypes);
     for (int i = 3; i < narg; i++) {
         for (int j = 0; j < ele.size(); j++){
             if (strcmp(arg[i],ele[j].c_str()) == 0){
@@ -620,21 +624,20 @@ void PairPolyMLP::coeff(int narg, char **arg)
             }
         }
     }
-
     for (int i = 1; i <= atom->ntypes; ++i){
         atom->set_mass(FLERR,i,mass[map[i-1]]);
         for (int j = 1; j <= atom->ntypes; ++j) setflag[i][j] = 1;
     }
 
+    std::cout << "Setting polymlp succeeded." << std::endl;
+    std::cout << "-----------------------------" << std::endl;
+}
+
+void PairPolyMLP::set_types(){
+    types.clear();
     for (int i = 0; i < atom->natoms; ++i){
         types.emplace_back(map[(atom->type)[i]-1]);
     }
-
-    if (fp.feature_type == "gtinv") 
-        set_nlmtp_attrs_ids();
-
-    std::cout << "Setting polymlp succeeded." << std::endl;
-    std::cout << "-----------------------------" << std::endl;
 }
 
 void PairPolyMLP::set_nlmtp_attrs_ids(){
